@@ -12,6 +12,19 @@ services:
     depends_on:
       - mongo
     restart: always
+    networks:
+      - absence_network
+
+  frontend:
+    build: ./react
+    container_name: absence_frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - app
+    restart: always
+    networks:
+      - absence_network
 
   mongo:
     image: mongo:latest
@@ -23,6 +36,12 @@ services:
       - C:/Users/yasse/Bureau/DB:/data/db
     environment:
       MONGO_INITDB_DATABASE: absence_management
+    networks:
+      - absence_network
+
+networks:
+  absence_network:
+    driver: bridge
 
 volumes:
   mongo_data:

@@ -5,7 +5,7 @@ import { ISeance } from './Seance';
 export interface IAbsence extends Document {
     etudiant: IEtudiant['_id'];
     seance: ISeance['_id'];
-    statut: 'absent' | 'present';
+    statut: 'absent' | 'present' | 'retard';
     motif?: string;
     date_justification?: Date;
 }
@@ -13,7 +13,7 @@ export interface IAbsence extends Document {
 const AbsenceSchema: Schema = new Schema({
     etudiant: { type: mongoose.Schema.Types.ObjectId, ref: "Etudiant", required: [true, "L'étudiant est requis"] },
     seance: { type: mongoose.Schema.Types.ObjectId, ref: "Seance", required: [true, 'La séance est requise'] },
-    statut: { type: String, enum: ["absent", "present"], default: "absent" },
+    statut: { type: String, enum: ["absent", "retard"], default: "absent" },
     motif: { type: String },
     date_justification: { type: Date }
 });
