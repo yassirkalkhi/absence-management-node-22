@@ -186,55 +186,7 @@ export default function Dashboard() {
                 </div>
             ) : (
                 <>
-                    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-                        <Card className="border border-border/50 hover:border-border transition-colors">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-                                <CardTitle className="text-sm font-medium text-muted-foreground">Total Absences</CardTitle>
-                                <AlertCircle className="h-5 w-5 text-primary/60" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-3xl font-bold mb-1">{totalAbsences}</div>
-                                <p className="text-xs text-muted-foreground">
-                                    {absentCount} absents, {lateCount} retards
-                                </p>
-                            </CardContent>
-                        </Card>
-
-                        <Card className="border border-border/50 hover:border-border transition-colors">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-                                <CardTitle className="text-sm font-medium text-muted-foreground">Étudiants Inscrits</CardTitle>
-                                <Users className="h-5 w-5 text-primary/60" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-3xl font-bold mb-1  text-primary">{totalStudents}</div>
-                                <p className="text-xs text-muted-foreground">Répartis dans {totalClasses} classes</p>
-                            </CardContent>
-                        </Card>
-
-                        <Card className="border border-border/50 hover:border-border transition-colors">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-                                <CardTitle className="text-sm font-medium text-muted-foreground">Classes Actives</CardTitle>
-                                <BookOpen className="h-5 w-5 text-primary/60" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-3xl font-bold mb-1 text-primary">{totalClasses}</div>
-                                <p className="text-xs text-muted-foreground">{totalTeachers} enseignants</p>
-                            </CardContent>
-                        </Card>
-
-                        <Card className="border border-border/50 hover:border-border transition-colors">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-                                <CardTitle className="text-sm font-medium text-muted-foreground">À traiter</CardTitle>
-                                <FileCheck className="h-5 w-5 text-primary/60" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-3xl font-bold mb-1">{pendingJustifications}</div>
-                                <p className="text-xs text-muted-foreground">Justifications à vérifier</p>
-                            </CardContent>
-                        </Card>
-                    </div>
-
-                    <div className="grid gap-6 grid-cols-1 lg:grid-cols-">
+                  <div className="grid gap-6 grid-cols-1 lg:grid-cols-">
                         <Card className="lg:col-span-2 border border-border/50">
                             <CardHeader>
                                 <CardTitle>Statistiques des Absences</CardTitle>
@@ -320,8 +272,8 @@ export default function Dashboard() {
 
 
                     </div>
-
-                    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+                 
+                     <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
                         <Card className="border border-border/50 h-fit">
                             <CardHeader>
                                 <CardTitle className="text-base">Absences Récentes</CardTitle>
@@ -362,22 +314,73 @@ export default function Dashboard() {
                                 <GraduationCap className="h-5 w-5 text-primary/60" />
                             </CardHeader>
                             <CardContent>
-                                <div className="text-3xl font-bold mb-2  text-primary">{totalTeachers}</div>
+                                <div className="text-3xl font-bold mb-2 ">{totalTeachers}</div>
                                 <p className="text-sm text-muted-foreground">Enseignants actifs dans le système</p>
                             </CardContent>
-                        </Card>
-
-                        <Card className="border border-border/50">
+                               <hr />
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
                                 <CardTitle className="text-sm font-medium">Séances</CardTitle>
                                 <Calendar className="h-5 w-5 text-primary/60" />
                             </CardHeader>
+                         
                             <CardContent>
                                 <div className="text-3xl font-bold mb-2  text-primary">{totalSessions}</div>
                                 <p className="text-sm text-muted-foreground">Séances programmées au total</p>
                             </CardContent>
                         </Card>
+ 
                     </div>
+                       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+                        <Card className="border border-border/50 hover:border-border transition-colors">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                                <CardTitle className="text-sm font-medium text-muted-foreground">Total Absences</CardTitle>
+                                <AlertCircle className="h-5 w-5 text-red-700" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-3xl font-bold mb-1 ">{totalAbsences}</div>
+                                <p className="text-xs text-muted-foreground">
+                                    {absentCount} absents, {lateCount} retards
+                                </p>
+                            </CardContent>
+                        </Card>
+
+                        <Card className="border border-border/50 hover:border-border transition-colors">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                                <CardTitle className="text-sm font-medium text-muted-foreground">Étudiants Inscrits</CardTitle>
+                                <Users className="h-5 w-5  text-blue-800" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-3xl font-bold mb-1">{totalStudents}</div>
+                                <p className="text-xs text-muted-foreground">Répartis dans {totalClasses} classes</p>
+                            </CardContent>
+                        </Card>
+
+                        <Card className="border border-border/50 hover:border-border transition-colors">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                                <CardTitle className="text-sm font-medium text-muted-foreground">Classes Actives</CardTitle>
+                                <BookOpen className="h-5 w-5 text-green-700" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-3xl font-bold mb-1">{totalClasses}</div>
+                                <p className="text-xs text-muted-foreground">{totalTeachers} enseignants</p>
+                            </CardContent>
+                        </Card>
+
+                        <Card className="border border-border/50 hover:border-border transition-colors">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                                <CardTitle className="text-sm font-medium text-muted-foreground">À traiter</CardTitle>
+                                <FileCheck className="h-5 w-5 text-primary/60" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-3xl font-bold mb-1">{pendingJustifications}</div>
+                                <p className="text-xs text-muted-foreground">Justifications à vérifier</p>
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                  
+
+                   
                 </>
             )}
         </div>

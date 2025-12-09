@@ -11,7 +11,8 @@ import EtudiantsPage from './pages/EtudiantsPage';
 import SeancesPage from './pages/SeancesPage';
 import JustificationsPage from './pages/JustificationsPage';
 import LoginPage from './pages/LoginPage';
-import ActivateStudentPage from './pages/ActivateStudentPage'; 
+import ActivateStudentPage from './pages/ActivateStudentPage';
+import { Toaster } from '@/components/ui/sonner';
 
 function App() {
   return (
@@ -26,19 +27,19 @@ function App() {
           <ProtectedRoute >
             <DashboardLayout />
           </ProtectedRoute>
-        }> 
-          
+        }>
+
           {/* Accessible to both students and admins */}
           <Route path="absences" element={<AbsencesPage />} />
           <Route path="justifications" element={<JustificationsPage />} />
 
           {/* Admin-only routes */}
-            <Route path='/' element={
+          <Route path='/' element={
             <ProtectedRoute requireAdmin>
               <Dashboard />
             </ProtectedRoute>
           } />
-            <Route path='dashboard' element={
+          <Route path='dashboard' element={
             <ProtectedRoute requireAdmin>
               <Dashboard />
             </ProtectedRoute>
@@ -67,12 +68,13 @@ function App() {
             <ProtectedRoute requireAdmin>
               <ModulesPage />
             </ProtectedRoute>
-          } /> 
+          } />
         </Route>
 
         {/* Redirect any unknown routes to login */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
+      <Toaster />
     </AuthProvider>
   );
 }

@@ -9,6 +9,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { UserPlus, CheckCircle } from 'lucide-react';
 
+import { toast } from "sonner";
+
 export default function ActivateStudentPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -17,7 +19,7 @@ export default function ActivateStudentPage() {
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
     const { login, isAuthenticated } = useAuth();
- 
+
     useEffect(() => {
         if (isAuthenticated) {
             navigate('/', { replace: true });
@@ -29,12 +31,12 @@ export default function ActivateStudentPage() {
         e.stopPropagation();
 
         setError('');
- 
+
         if (password !== confirmPassword) {
             setError('Les mots de passe ne correspondent pas');
             return;
         }
- 
+
         if (password.length < 6) {
             setError('Le mot de passe doit contenir au moins 6 caractères');
             return;
@@ -44,9 +46,19 @@ export default function ActivateStudentPage() {
 
         try {
             const response = await activateStudent({ email, password });
-            console.log( response);
+            console.log(response);
+            toast.success("Compte activé avec succès !",
+                {
+                    duration: 5000,
+                    style: {
+                        background: "#4ade80",
+                        color: "#fff"
+                    },
+                    position: "top-center"
+                }
+            );
             login(response.user, response.token);
-            navigate('/', { replace: true });
+            navigate('/absences', { replace: true });
         } catch (err: any) {
             console.error('❌ Activation error:', err);
             setError(err.response?.data?.message || 'Erreur lors de l\'activation du compte');

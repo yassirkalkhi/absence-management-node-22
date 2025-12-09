@@ -9,14 +9,15 @@ import {
     BreadcrumbList,
     BreadcrumbPage,
     BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb" 
-import { Toaster } from "@/components/ui/sonner"
+} from "@/components/ui/breadcrumb"
+
 import { useLocation } from "react-router-dom"
 
-export default function DashboardLayout() { 
+
+export default function DashboardLayout() {
     const { pathname } = useLocation();
     const page = pathname.split('/').pop();
-    
+
 
     return (
         <SidebarProvider>
@@ -41,7 +42,6 @@ export default function DashboardLayout() {
                     <Outlet />
                 </div>
             </main>
-            <Toaster />
         </SidebarProvider>
     )
 }
