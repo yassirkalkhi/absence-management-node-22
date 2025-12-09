@@ -6,6 +6,11 @@ export const getAllAbsences = async () => {
     return response.data;
 };
 
+export const getStudentAbsence = async (studentId: string) => {
+    const response = await api.get(`/absences/student/${studentId}`);
+    return response.data;
+}
+
 export const createAbsence = async (absence: Omit<Absence, '_id'>) => {
     const response = await api.post('/absences', absence);
     return response.data;

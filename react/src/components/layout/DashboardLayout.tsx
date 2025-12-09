@@ -9,14 +9,14 @@ import {
     BreadcrumbList,
     BreadcrumbPage,
     BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
-import { User } from "lucide-react"
-import { useAuth } from "@/contexts/AuthContext"
+} from "@/components/ui/breadcrumb" 
 import { Toaster } from "@/components/ui/sonner"
-import { Badge } from "@/components/ui/badge"
+import { useLocation } from "react-router-dom"
 
-export default function DashboardLayout() {
-    const { user } = useAuth();
+export default function DashboardLayout() { 
+    const { pathname } = useLocation();
+    const page = pathname.split('/').pop();
+    
 
     return (
         <SidebarProvider>
@@ -28,28 +28,14 @@ export default function DashboardLayout() {
                     <Breadcrumb>
                         <BreadcrumbList>
                             <BreadcrumbItem className="hidden md:block">
-                                <BreadcrumbLink href="#">Application</BreadcrumbLink>
+                                <BreadcrumbLink href="#">Gestion des absences</BreadcrumbLink>
                             </BreadcrumbItem>
                             <BreadcrumbSeparator className="hidden md:block" />
                             <BreadcrumbItem>
-                                <BreadcrumbPage>Dashboard</BreadcrumbPage>
+                                <BreadcrumbPage>{page}</BreadcrumbPage>
                             </BreadcrumbItem>
                         </BreadcrumbList>
                     </Breadcrumb>
-                    <div className="ml-auto flex items-center gap-2">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
-                            <User className="h-4 w-4 text-primary" />
-                        </div>
-                        <div className="hidden sm:flex flex-col">
-                            <span className="text-sm font-medium">{user?.nom} {user?.prenom}</span>
-                            <Badge
-                                variant={user?.role === 'admin' ? 'default' : 'secondary'}
-                                className="text-xs w-fit"
-                            >
-                                {user?.role === 'admin' ? 'Admin' : 'Étudiant'}
-                            </Badge>
-                        </div>
-                    </div>
                 </header>
                 <div className="flex-1 overflow-auto p-4 bg-muted/20">
                     <Outlet />

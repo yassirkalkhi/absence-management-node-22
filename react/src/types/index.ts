@@ -32,7 +32,7 @@ export interface Teacher {
 
 export interface Session {
     _id: string;
-    date_seance: string; // ISO Date string
+    date_seance: string; 
     heure_debut: string;
     heure_fin: string;
     enseignant: Teacher | string;
@@ -55,8 +55,7 @@ export interface Justification {
     commentaire: string;
     etat: 'en attente' | 'validé' | 'refusé';
 }
-
-// Auth types
+ 
 export interface User {
     id: string;
     email: string;

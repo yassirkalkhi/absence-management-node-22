@@ -22,13 +22,11 @@ api.interceptors.request.use(
         return Promise.reject(error);
     }
 );
-
-// Add response interceptor to handle auth errors
+ 
 api.interceptors.response.use(
     (response) => response,
     (error) => {
-        if (error.response?.status === 401) {
-            // Token expired or invalid - redirect to login
+        if (error.response?.status === 401) { 
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             window.location.href = '/login';

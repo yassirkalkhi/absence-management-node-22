@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   app:
-    build: .
+    build: ./node
     container_name: absence_backend
     ports:
       - "3000:3000"
@@ -33,7 +33,7 @@ services:
     ports:
       - "27017:27017"
     volumes:
-      - C:/Users/yasse/Bureau/DB:/data/db
+      - "${MONGO_VOLUME:-./mongo_data}:/data/db"
     environment:
       MONGO_INITDB_DATABASE: absence_management
     networks:
@@ -44,4 +44,4 @@ networks:
     driver: bridge
 
 volumes:
-  mongo_data:
+  mongo_data: {}

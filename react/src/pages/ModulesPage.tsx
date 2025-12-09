@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Search, Filter } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -59,10 +59,28 @@ export default function ModulesPage() {
             setIsSubmitting(true);
             if (editingModule) {
                 await updateModule(editingModule._id, values);
-                toast.success("Module modifié avec succès");
+                toast.success("Module modifié avec succès",
+                    {
+                        duration: 5000,
+                        position: "top-right",
+                        style: {
+                            background: "#4ade80",
+                            color: "#fff",
+                        },
+                    }
+                );
             } else {
                 await createModule(values);
-                toast.success("Module créé avec succès");
+                toast.success("Module créé avec succès",
+                     {
+                        duration: 5000,
+                        position: "top-right",
+                        style: {
+                            background: "#4ade80",
+                            color: "#fff",
+                        },
+                    }
+                );
             }
             setIsDialogOpen(false);
             setEditingModule(null);
@@ -78,7 +96,16 @@ export default function ModulesPage() {
         if (!confirm("Êtes-vous sûr de vouloir supprimer ce module ?")) return;
         try {
             await deleteModule(id);
-            toast.success("Module supprimé");
+            toast.success("Module supprimé",
+                {
+                    duration: 5000,
+                    position: "top-right",
+                    style: {
+                        background: "#4ade80",
+                        color: "#fff",
+                    },
+                }
+            );
             setModules(modules.filter(m => m._id !== id));
         } catch (error) {
             handleApiError(error, "Erreur lors de la suppression du module");
@@ -133,10 +160,7 @@ export default function ModulesPage() {
                         placeholder="Rechercher un module..."
                         className="pl-8 w-full md:w-[300px]"
                     />
-                </div>
-                <Button variant="outline">
-                    <Filter className="mr-2 h-4 w-4" /> Filtrer
-                </Button>
+                </div> 
             </div>
 
             <Card>
@@ -167,7 +191,7 @@ export default function ModulesPage() {
                                             <Button variant="outline" size="sm" onClick={() => openEditDialog(module)}>
                                                 Modifier
                                             </Button>
-                                            <Button variant="ghost" size="sm" onClick={() => handleDeleteModule(module._id)}>
+                                            <Button variant="outline" className="outline text-red-500 hover:text-red-600" size="sm" onClick={() => handleDeleteModule(module._id)}>
                                                 Supprimer
                                             </Button>
                                         </TableCell>

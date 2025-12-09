@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Search, Filter } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -28,12 +28,13 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { handleApiError } from "@/utils/apiUtils";
-import { getAllAbsences, createAbsence, updateAbsence, deleteAbsence } from "@/services/absenceService";
+import { getAllAbsences, createAbsence, updateAbsence, deleteAbsence, getStudentAbsence } from "@/services/absenceService";
 import { getAllStudents } from "@/services/studentService";
 import { getAllSessions } from "@/services/sessionService";
-import { AbsenceForm } from "@/components/absence/AbsenceForm";
+import { AbsenceForm } from "@/components/forms/AbsenceForm";
 import { useAuth } from "@/contexts/AuthContext";
-import type { Absence, Student, Session } from "@/types";
+import type { Absence, Student, Session } from "@/types"; 
+import { cn } from "@/lib/utils";
 
 export default function AbsencesPage() {
     const [absences, setAbsences] = useState<Absence[]>([]);
@@ -43,37 +44,56 @@ export default function AbsencesPage() {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingAbsence, setEditingAbsence] = useState<Absence | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
-
+    
+    const { user , isLoading} = useAuth();
 
     useEffect(() => {
-        fetchData();
-    }, []);
+        if (!isLoading && user) {
+            fetchData();
+        }
+    }, [isLoading, user]);
 
-    const { user } = useAuth();
 
+     
+    const isAdmin = user?.role === 'admin';
+
+  console.log(user);
     const fetchData = async () => {
+        if(isLoading){
+            return;
+        }       
+    
         try {
             setLoading(true);
-            const [absencesData, studentsData, sessionsData] = await Promise.all([
-                getAllAbsences(),
-                getAllStudents(),
-                getAllSessions()
+            if(isAdmin) {
+                const [absencesData, studentsData, sessionsData] = await Promise.all([
+                     getAllAbsences(),
+                     getAllStudents(),
+                     getAllSessions()
+                     
             ]);
-
-            // Filter absences for students - only show their own
-            let filteredAbsences = absencesData;
-            if (user?.role === 'student' && user?.etudiant) {
-                filteredAbsences = absencesData.filter((absence: Absence) => {
-                    const etudiantId = typeof absence.etudiant === 'object'
-                        ? absence.etudiant._id
-                        : absence.etudiant;
-                    return etudiantId === user.etudiant;
-                });
+                setStudents(studentsData);
+                setSessions(sessionsData);
+                setAbsences(absencesData);
+                
+                 console.log("admin");
             }
+            else {
+                if(user?.etudiant == null){
+                   return ;
+                }
+                const [absencesData] = await Promise.all([
+                        getStudentAbsence(user?.etudiant),
+                       
+                ]);
+                 setAbsences(absencesData);
 
-            setAbsences(filteredAbsences);
-            setStudents(studentsData);
-            setSessions(sessionsData);
+                 console.log("student");
+            }
+            
+ 
+          
+      
         } catch (error) {
             handleApiError(error, "Erreur lors du chargement des données");
         } finally {
@@ -83,6 +103,17 @@ export default function AbsencesPage() {
 
     const handleCreateOrUpdateAbsence = async (values: any) => {
         try {
+            if(user?.role !== 'admin') {
+                toast.error("Vous n'êtes pas autorisé à effectuer cette action",{
+                    duration: 5000,
+                    position: "top-right",
+                    style: {
+                        background: "#4ade80",
+                        color: "#fff",
+                    },
+                });
+                return;
+            }
             setIsSubmitting(true);
             const payload = {
                 etudiant: values.studentId,
@@ -93,10 +124,24 @@ export default function AbsencesPage() {
 
             if (editingAbsence) {
                 await updateAbsence(editingAbsence._id, payload);
-                toast.success("Absence modifiée avec succès");
+                toast.success("Absence modifiée avec succès",{
+                    duration: 5000,
+                    position: "top-right",
+                    style: {
+                        background: "#4ade80",
+                        color: "#fff",
+                    },
+                });
             } else {
                 await createAbsence(payload);
-                toast.success("Absence signalée avec succès");
+                toast.success("Absence signalée avec succès",{
+                    duration: 5000,
+                    position: "top-right",
+                    style: {
+                        background: "#4ade80",
+                        color: "#fff",
+                    },
+                });
             }
             setIsDialogOpen(false);
             setEditingAbsence(null);
@@ -111,41 +156,43 @@ export default function AbsencesPage() {
     const handleDeleteAbsence = async (id: string) => {
         if (!confirm("Êtes-vous sûr de vouloir supprimer cette absence ?")) return;
         try {
+            if(user?.role !== 'admin') {
+                toast.error("Vous n'êtes pas autorisé à effectuer cette action",{
+                    duration: 5000,
+                    position: "top-right",
+                    style: {
+                        background: "#4ade80",
+                        color: "#fff",
+                    },
+                });
+                return;
+            }
             await deleteAbsence(id);
-            toast.success("Absence supprimée");
+            toast.success("Absence supprimée",{
+                duration: 5000,
+                position: "top-right",
+                style: {
+                    background: "#4ade80",
+                    color: "#fff",
+                },
+            });
             setAbsences(absences.filter(a => a._id !== id));
         } catch (error) {
             handleApiError(error, "Erreur lors de la suppression de l'absence");
         }
     };
+    const handleDialogChange = (open: boolean) => {
+        setIsDialogOpen(open);
+        if (!open) setEditingAbsence(null);
+    };
+
 
     const openEditDialog = (absence: Absence) => {
         setEditingAbsence(absence);
         setIsDialogOpen(true);
     };
 
-    const handleDialogChange = (open: boolean) => {
-        setIsDialogOpen(open);
-        if (!open) setEditingAbsence(null);
-    };
-
-    const getStudentName = (absence: Absence) => {
-        if (typeof absence.etudiant === 'object' && absence.etudiant !== null) {
-            return `${absence.etudiant.nom} ${absence.etudiant.prenom}`;
-        }
-        return 'Étudiant inconnu';
-    };
-
-    const getSessionInfo = (absence: Absence) => {
-        if (typeof absence.seance === 'object' && absence.seance !== null) {
-            const date = new Date(absence.seance.date_seance).toLocaleDateString();
-            const moduleName = typeof absence.seance.module === 'object' ? absence.seance.module.nom_module : 'Module';
-            return `${moduleName} - ${date}`;
-        }
-        return 'Séance inconnue';
-    };
-
-    const isAdmin = user?.role === 'admin';
+ 
 
     return (
         <div className="space-y-6">
@@ -178,7 +225,7 @@ export default function AbsencesPage() {
                                 students={students}
                                 sessions={sessions}
                                 onSubmit={handleCreateOrUpdateAbsence}
-                                defaultValues={editingAbsence
+                                defaultValues={editingAbsence && (editingAbsence.statut === 'absent' || editingAbsence.statut === 'retard')
                                     ? {
                                         studentId: typeof editingAbsence.etudiant === 'object' ? editingAbsence.etudiant._id : editingAbsence.etudiant,
                                         sessionId: typeof editingAbsence.seance === 'object' ? editingAbsence.seance._id : editingAbsence.seance,
@@ -202,9 +249,7 @@ export default function AbsencesPage() {
                         className="pl-8 w-full md:w-[300px]"
                     />
                 </div>
-                <Button variant="outline">
-                    <Filter className="mr-2 h-4 w-4" /> Filtrer
-                </Button>
+                
             </div>
 
             <Card>
@@ -215,10 +260,10 @@ export default function AbsencesPage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    {loading ? (
+                    {loading && isLoading ? (
                         <div className="flex justify-center p-8">Chargement...</div>
                     ) : (
-                        <Table>
+                        <Table> 
                             <TableHeader>
                                 <TableRow>
                                     {isAdmin && <TableHead>Étudiant</TableHead>}
@@ -240,7 +285,7 @@ export default function AbsencesPage() {
                                             {getSessionInfo(absence)}
                                         </TableCell>
                                         <TableCell>
-                                            <Badge variant={absence.statut === 'absent' ? 'destructive' : 'secondary'}>
+                                            <Badge variant={"outline"} className={cn("text-xs", absence.statut === "absent" ? " text-red-500" : " text-yellow-500")}>
                                                 {absence.statut}
                                             </Badge>
                                         </TableCell>
@@ -252,7 +297,7 @@ export default function AbsencesPage() {
                                                 <Button variant="outline" size="sm" onClick={() => openEditDialog(absence)}>
                                                     Modifier
                                                 </Button>
-                                                <Button variant="destructive" size="sm" onClick={() => handleDeleteAbsence(absence._id)}>
+                                                <Button variant="outline" className="text-red-500 hover:text-red-600" size="sm" onClick={() => handleDeleteAbsence(absence._id)}>
                                                     Supprimer
                                                 </Button>
                                             </TableCell>
@@ -274,3 +319,26 @@ export default function AbsencesPage() {
         </div>
     );
 }
+
+
+
+
+
+
+
+   
+    const getStudentName = (absence: Absence) => {
+        if (typeof absence.etudiant === 'object' && absence.etudiant !== null) {
+            return `${absence.etudiant.nom} ${absence.etudiant.prenom}`;
+        }
+        return 'Étudiant inconnu';
+    };
+
+    const getSessionInfo = (absence: Absence) => {
+        if (typeof absence.seance === 'object' && absence.seance !== null) {
+            const date = new Date(absence.seance.date_seance).toLocaleDateString();
+            const moduleName = typeof absence.seance.module === 'object' ? absence.seance.module.nom_module : 'Module';
+            return `${moduleName} - ${date}`;
+        }
+        return 'Séance inconnue';
+    };

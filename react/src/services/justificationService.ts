@@ -6,6 +6,12 @@ export const getAllJustifications = async () => {
     return response.data;
 };
 
+export const getStudentJustifications = async (studentId: string) => {
+    const response = await api.get(`/justifications/student/${studentId}`);
+    return response.data;
+}
+
+
 export const createJustification = async (data: Omit<Justification, '_id'>) => {
     const response = await api.post('/justifications', data);
     return response.data;

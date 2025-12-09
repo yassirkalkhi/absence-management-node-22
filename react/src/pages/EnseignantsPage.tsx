@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Search, Filter } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -57,8 +57,7 @@ export default function EnseignantsPage() {
     const handleCreateOrUpdateTeacher = async (values: any) => {
         try {
             setIsSubmitting(true);
-
-            // Clean payload: remove empty password if editing
+ 
             const payload = { ...values };
             if (!payload.password) {
                 delete payload.password;
@@ -66,15 +65,42 @@ export default function EnseignantsPage() {
 
             if (editingTeacher) {
                 await updateTeacher(editingTeacher._id, payload);
-                toast.success("Enseignant modifié avec succès");
+                toast.success("Enseignant modifié avec succès",
+                    {
+                        duration: 5000,
+                        position: "top-right",
+                        style: {
+                            background: "#4ade80",
+                            color: "#fff",
+                        },
+                    }
+                );
             } else {
                 if (!payload.password) {
-                    toast.error("Le mot de passe est requis pour la création");
+                    toast.error("Le mot de passe est requis pour la création",
+                        {
+                            duration: 5000,
+                            position: "top-right",
+                            style: {
+                                background: "#4ade80",
+                                color: "#fff",
+                            },
+                        }
+                    );
                     setIsSubmitting(false);
                     return;
                 }
                 await createTeacher({ ...payload, classes: [] });
-                toast.success("Enseignant ajouté avec succès");
+                toast.success("Enseignant ajouté avec succès",
+                    {
+                        duration: 5000,
+                        position: "top-right",
+                        style: {
+                            background: "#4ade80",
+                            color: "#fff",
+                        },
+                    }
+                );
             }
             setIsDialogOpen(false);
             setEditingTeacher(null);
@@ -90,7 +116,16 @@ export default function EnseignantsPage() {
         if (!confirm("Êtes-vous sûr de vouloir supprimer cet enseignant ?")) return;
         try {
             await deleteTeacher(id);
-            toast.success("Enseignant supprimé");
+            toast.success("Enseignant supprimé",
+                {
+                    duration: 5000,
+                    position: "top-right",
+                    style: {
+                        background: "#4ade80",
+                        color: "#fff",
+                    },
+                }
+            );
             setTeachers(teachers.filter(t => t._id !== id));
         } catch (error) {
             handleApiError(error, "Erreur lors de la suppression de l'enseignant");
@@ -146,9 +181,7 @@ export default function EnseignantsPage() {
                         className="pl-8 w-full md:w-[300px]"
                     />
                 </div>
-                <Button variant="outline">
-                    <Filter className="mr-2 h-4 w-4" /> Filtrer
-                </Button>
+                 
             </div>
 
             <Card>
@@ -183,7 +216,7 @@ export default function EnseignantsPage() {
                                             <Button variant="outline" size="sm" onClick={() => openEditDialog(teacher)}>
                                                 Modifier
                                             </Button>
-                                            <Button variant="ghost" size="sm" onClick={() => handleDeleteTeacher(teacher._id)}>
+                                            <Button variant="outline" className="text-red-500 hover:text-red-600" size="sm" onClick={() => handleDeleteTeacher(teacher._id)}>
                                                 Supprimer
                                             </Button>
                                         </TableCell>

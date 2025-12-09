@@ -4,7 +4,8 @@ import * as absenceController from '../controllers/absenceController';
 const router = Router();
 
 router.post('/', absenceController.createAbsence);
-router.get('/', absenceController.getAbsences);
+router.get('/', absenceController.getAbsences); 
+router.get('/student/:id', absenceController.getAbsencesByEtudiant);
 router.get('/:id', absenceController.getAbsenceById);
 router.put('/:id', absenceController.updateAbsence);
 router.delete('/:id', absenceController.deleteAbsence);

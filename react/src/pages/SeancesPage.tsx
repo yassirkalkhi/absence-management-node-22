@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Search, Filter } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -73,10 +73,28 @@ export default function SeancesPage() {
             setIsSubmitting(true);
             if (editingSession) {
                 await updateSession(editingSession._id, values);
-                toast.success("Séance modifiée avec succès");
+                toast.success("Séance modifiée avec succès",
+                    {
+                        duration: 5000,
+                        position: "top-right",
+                        style: {
+                            background: "#4ade80",
+                            color: "#fff",
+                        },
+                    }
+                );
             } else {
                 await createSession(values);
-                toast.success("Séance créée avec succès");
+                toast.success("Séance créée avec succès",
+                    {
+                        duration: 5000,
+                        position: "top-right",
+                        style: {
+                            background: "#4ade80",
+                            color: "#fff",
+                        },
+                    }
+                );
             }
             setIsDialogOpen(false);
             setEditingSession(null);
@@ -92,7 +110,16 @@ export default function SeancesPage() {
         if (!confirm("Êtes-vous sûr de vouloir supprimer cette séance ?")) return;
         try {
             await deleteSession(id);
-            toast.success("Séance supprimée");
+            toast.success("Séance supprimée",
+                {
+                    duration: 5000,
+                    position: "top-right",
+                    style: {
+                        background: "#4ade80",
+                        color: "#fff",
+                    },
+                }
+            );
             setSessions(sessions.filter(s => s._id !== id));
         } catch (error) {
             handleApiError(error, "Erreur lors de la suppression de la séance");
@@ -179,10 +206,7 @@ export default function SeancesPage() {
                         placeholder="Rechercher une séance..."
                         className="pl-8 w-full md:w-[300px]"
                     />
-                </div>
-                <Button variant="outline">
-                    <Filter className="mr-2 h-4 w-4" /> Filtrer
-                </Button>
+                </div> 
             </div>
 
             <Card>
@@ -223,7 +247,7 @@ export default function SeancesPage() {
                                             <Button variant="outline" size="sm" onClick={() => openEditDialog(session)}>
                                                 Modifier
                                             </Button>
-                                            <Button variant="ghost" size="sm" onClick={() => handleDeleteSession(session._id)}>
+                                            <Button variant="outline" className="outline text-red-500 hover:text-red-600" size="sm" onClick={() => handleDeleteSession(session._id)}>
                                                 Supprimer
                                             </Button>
                                         </TableCell>

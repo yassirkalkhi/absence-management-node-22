@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Search, Filter } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -59,10 +59,24 @@ export default function ClassesPage() {
             setIsSubmitting(true);
             if (editingClass) {
                 await updateClass(editingClass._id, values);
-                toast.success("Classe modifiée avec succès");
+                toast.success("Classe modifiée avec succès",{
+                    duration: 5000,
+                    position: "top-right",
+                    style: {
+                        background: "#4ade80",
+                        color: "#fff",
+                    },
+                });
             } else {
                 await createClass(values);
-                toast.success("Classe créée avec succès");
+                toast.success("Classe créée avec succès",{
+                    duration: 5000,
+                    position: "top-right",
+                    style: {
+                        background: "#4ade80",
+                        color: "#fff",
+                    },
+                });
             }
             setIsDialogOpen(false);
             setEditingClass(null);
@@ -78,7 +92,14 @@ export default function ClassesPage() {
         if (!confirm("Êtes-vous sûr de vouloir supprimer cette classe ?")) return;
         try {
             await deleteClass(id);
-            toast.success("Classe supprimée");
+            toast.success("Classe supprimée",{
+                duration: 5000,
+                position: "top-right",
+                style: {
+                    background: "#4ade80",
+                    color: "#fff",
+                },
+            });
             setClasses(classes.filter(c => c._id !== id));
         } catch (error) {
             handleApiError(error, "Erreur lors de la suppression de la classe");
@@ -134,9 +155,7 @@ export default function ClassesPage() {
                         className="pl-8 w-full md:w-[300px]"
                     />
                 </div>
-                <Button variant="outline">
-                    <Filter className="mr-2 h-4 w-4" /> Filtrer
-                </Button>
+                
             </div>
 
             <Card>
@@ -171,7 +190,7 @@ export default function ClassesPage() {
                                             <Button variant="outline" size="sm" onClick={() => openEditDialog(classe)}>
                                                 Modifier
                                             </Button>
-                                            <Button variant="ghost" size="sm" onClick={() => handleDeleteClass(classe._id)}>
+                                            <Button variant="outline" className="text-red-500 hover:text-red-600" size="sm" onClick={() => handleDeleteClass(classe._id)}>
                                                 Supprimer
                                             </Button>
                                         </TableCell>

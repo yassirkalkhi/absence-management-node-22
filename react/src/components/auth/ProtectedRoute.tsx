@@ -25,14 +25,7 @@ export const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRout
     }
 
     if (requireAdmin && user?.role !== 'admin') {
-        return (
-            <div className="flex items-center justify-center min-h-screen">
-                <div className="text-center">
-                    <h1 className="text-2xl font-bold text-red-600">Accès refusé</h1>
-                    <p className="mt-2 text-gray-600">Vous n'avez pas les droits nécessaires pour accéder à cette page.</p>
-                </div>
-            </div>
-        );
+        return <Navigate to="/" replace />;
     }
 
     return <>{children}</>;

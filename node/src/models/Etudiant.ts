@@ -6,7 +6,7 @@ export interface IEtudiant extends Document {
     prenom: string;
     email: string;
     classe: IClasse['_id'];
-    isActivated: boolean; // Track if student has created their account
+    isActivated: boolean; 
 }
 
 const EtudiantSchema: Schema = new Schema({
@@ -19,8 +19,8 @@ const EtudiantSchema: Schema = new Schema({
         lowercase: true,
         trim: true
     },
-    classe: { type: mongoose.Schema.Types.ObjectId, ref: "Classe", required: [true, 'La classe est requise'] },
-    isActivated: { type: Boolean, default: false } // False until student creates their account
+    classe: { type: mongoose.Schema.Types.ObjectId, ref: "Classe", required : false },
+    isActivated: { type: Boolean, default: false } 
 });
 
 export default mongoose.model<IEtudiant>('Etudiant', EtudiantSchema);

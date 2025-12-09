@@ -11,8 +11,7 @@ import EtudiantsPage from './pages/EtudiantsPage';
 import SeancesPage from './pages/SeancesPage';
 import JustificationsPage from './pages/JustificationsPage';
 import LoginPage from './pages/LoginPage';
-import ActivateStudentPage from './pages/ActivateStudentPage';
-import Test from './pages/Test';
+import ActivateStudentPage from './pages/ActivateStudentPage'; 
 
 function App() {
   return (
@@ -24,19 +23,51 @@ function App() {
 
         {/* Protected routes */}
         <Route path="/" element={
-          <ProtectedRoute>
+          <ProtectedRoute >
             <DashboardLayout />
           </ProtectedRoute>
-        }>
-          <Route index element={<Dashboard />} />
+        }> 
+          
+          {/* Accessible to both students and admins */}
           <Route path="absences" element={<AbsencesPage />} />
-          <Route path="seances" element={<SeancesPage />} />
-          <Route path="etudiants" element={<EtudiantsPage />} />
-          <Route path="classes" element={<ClassesPage />} />
-          <Route path="enseignants" element={<EnseignantsPage />} />
-          <Route path="modules" element={<ModulesPage />} />
           <Route path="justifications" element={<JustificationsPage />} />
-          <Route path="test" element={<Test />} />
+
+          {/* Admin-only routes */}
+            <Route path='/' element={
+            <ProtectedRoute requireAdmin>
+              <Dashboard />
+            </ProtectedRoute>
+          } />
+            <Route path='dashboard' element={
+            <ProtectedRoute requireAdmin>
+              <Dashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="seances" element={
+            <ProtectedRoute requireAdmin>
+              <SeancesPage />
+            </ProtectedRoute>
+          } />
+          <Route path="etudiants" element={
+            <ProtectedRoute requireAdmin>
+              <EtudiantsPage />
+            </ProtectedRoute>
+          } />
+          <Route path="classes" element={
+            <ProtectedRoute requireAdmin>
+              <ClassesPage />
+            </ProtectedRoute>
+          } />
+          <Route path="enseignants" element={
+            <ProtectedRoute requireAdmin>
+              <EnseignantsPage />
+            </ProtectedRoute>
+          } />
+          <Route path="modules" element={
+            <ProtectedRoute requireAdmin>
+              <ModulesPage />
+            </ProtectedRoute>
+          } /> 
         </Route>
 
         {/* Redirect any unknown routes to login */}

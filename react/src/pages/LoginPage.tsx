@@ -16,8 +16,7 @@ export default function LoginPage() {
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
     const { login, isAuthenticated } = useAuth();
-
-    // Redirect if already authenticated
+ 
     useEffect(() => {
         if (isAuthenticated) {
             navigate('/', { replace: true });
@@ -27,23 +26,27 @@ export default function LoginPage() {
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         e.stopPropagation();
-
+ 
         setError('');
         setIsLoading(true);
 
         try {
+            console.log('📡 Calling login service...');
             const response = await loginService({ email, password });
+            console.log('✅ Login successful:', response);
             login(response.user, response.token);
             navigate('/', { replace: true });
-        } catch (err: any) {
-            setError(err.response?.data?.message || 'Erreur lors de la connexion');
+        } catch (err: any) { 
+            const errorMessage = err.response?.data?.message || 'Erreur lors de la connexion';
+             
+            setError(errorMessage);
         } finally {
             setIsLoading(false);
         }
     };
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4">
+        <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-gray-50 to-gray-100 p-4">
             <Card className="w-full max-w-md shadow-lg">
                 <CardHeader className="space-y-3 pb-6">
                     <div className="flex justify-center">
@@ -125,11 +128,7 @@ export default function LoginPage() {
                             <div className="absolute inset-0 flex items-center">
                                 <span className="w-full border-t" />
                             </div>
-                            <div className="relative flex justify-center text-xs uppercase">
-                                <span className="bg-background px-2 text-muted-foreground">
-                                    Nouveau ?
-                                </span>
-                            </div>
+                            
                         </div>
 
                         <div className="text-center">

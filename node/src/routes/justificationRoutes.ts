@@ -5,6 +5,7 @@ const router = Router();
 
 router.post('/', justificationController.createJustification);
 router.get('/', justificationController.getJustifications);
+router.get('/student/:id', justificationController.getJustificationsByStudent);
 router.get('/:id', justificationController.getJustificationById);
 router.put('/:id', justificationController.updateJustification);
 router.delete('/:id', justificationController.deleteJustification);

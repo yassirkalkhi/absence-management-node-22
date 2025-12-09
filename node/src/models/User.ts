@@ -7,7 +7,7 @@ export interface IUser extends Document {
     nom: string;
     prenom: string;
     role: 'student' | 'admin';
-    etudiant?: mongoose.Types.ObjectId; // Reference to Etudiant if role is student
+    etudiant?: mongoose.Types.ObjectId;  
     createdAt: Date;
     updatedAt: Date;
     comparePassword(candidatePassword: string): Promise<boolean>;
@@ -26,7 +26,7 @@ const UserSchema: Schema<IUser> = new Schema({
         type: String,
         required: [true, 'Le mot de passe est requis'],
         minlength: [6, 'Le mot de passe doit contenir au moins 6 caractères'],
-        select: false // Don't include password in queries by default
+        select: false
     },
     nom: {
         type: String,
@@ -54,8 +54,7 @@ const UserSchema: Schema<IUser> = new Schema({
 }, {
     timestamps: true
 });
-
-// Hash password before saving
+ 
 UserSchema.pre('save', async function () {
     if (!this.isModified('password')) {
         return;

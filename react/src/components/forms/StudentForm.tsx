@@ -23,8 +23,7 @@ import type { Class } from "@/types"
 const formSchema = z.object({
     nom: z.string().min(1, "Le nom est requis."),
     prenom: z.string().min(1, "Le prénom est requis."),
-    email: z.string().email("Email invalide."),
-    password: z.string().min(6, "Le mot de passe doit contenir au moins 6 caractères."),
+    email: z.string().email("Email invalide."), 
     classe: z.string().min(1, "La classe est requise."),
 })
 
@@ -41,8 +40,7 @@ export function StudentForm({ classes, onSubmit, defaultValues, isLoading }: Stu
         defaultValues: {
             nom: "",
             prenom: "",
-            email: "",
-            password: "",
+            email: "", 
             classe: "",
             ...defaultValues,
         },
@@ -90,19 +88,7 @@ export function StudentForm({ classes, onSubmit, defaultValues, isLoading }: Stu
                         </FormItem>
                     )}
                 />
-                <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Mot de passe</FormLabel>
-                            <FormControl>
-                                <Input type="password" placeholder="******" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+               
                 <FormField
                     control={form.control}
                     name="classe"

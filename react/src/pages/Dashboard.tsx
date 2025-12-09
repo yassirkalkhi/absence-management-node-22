@@ -10,6 +10,8 @@ import { getAllSessions } from "@/services/sessionService";
 import { handleApiError } from "@/utils/apiUtils";
 import type { Absence, Student, Class, Justification, Teacher, Session } from "@/types";
 import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/contexts/AuthContext";
+import { cn } from "@/lib/utils";
 
 export default function Dashboard() {
     const [absences, setAbsences] = useState<Absence[]>([]);
@@ -19,6 +21,7 @@ export default function Dashboard() {
     const [teachers, setTeachers] = useState<Teacher[]>([]);
     const [sessions, setSessions] = useState<Session[]>([]);
     const [loading, setLoading] = useState(true);
+    const { user } = useAuth();
 
     useEffect(() => {
         fetchDashboardData();
@@ -27,39 +30,65 @@ export default function Dashboard() {
     const fetchDashboardData = async () => {
         try {
             setLoading(true);
-            const [absencesData, studentsData, classesData, justificationsData, teachersData, sessionsData] = await Promise.all([
-                getAllAbsences(),
-                getAllStudents(),
-                getAllClasses(),
-                getAllJustifications(),
-                getAllTeachers(),
-                getAllSessions()
-            ]);
-            setAbsences(absencesData);
-            setStudents(studentsData);
-            setClasses(classesData);
-            setJustifications(justificationsData);
-            setTeachers(teachersData);
-            setSessions(sessionsData);
+
+            const isAdmin = user?.role === 'admin';
+ 
+            if (!isAdmin) {
+                const [absencesData, justificationsData] = await Promise.all([
+                    getAllAbsences(),
+                    getAllJustifications()
+                ]);
+ 
+                const filteredAbsences = absencesData.filter((absence: Absence) => {
+                    if (!absence.etudiant) return false;
+                    const etudiantId = typeof absence.etudiant === 'object'
+                        ? absence.etudiant._id
+                        : absence.etudiant;
+                    return etudiantId === user?.etudiant;
+                });
+
+                const studentAbsenceIds = filteredAbsences.map((a: Absence) => a._id);
+                const filteredJustifications = justificationsData.filter((just: Justification) => {
+                    if (!just.absence) return false;
+                    const absenceId = typeof just.absence === 'object'
+                        ? just.absence._id
+                        : just.absence;
+                    return studentAbsenceIds.includes(absenceId);
+                });
+
+                setAbsences(filteredAbsences);
+                setJustifications(filteredJustifications);
+            } else { 
+                const [absencesData, studentsData, classesData, justificationsData, teachersData, sessionsData] = await Promise.all([
+                    getAllAbsences(),
+                    getAllStudents(),
+                    getAllClasses(),
+                    getAllJustifications(),
+                    getAllTeachers(),
+                    getAllSessions()
+                ]);
+                setAbsences(absencesData);
+                setStudents(studentsData);
+                setClasses(classesData);
+                setJustifications(justificationsData);
+                setTeachers(teachersData);
+                setSessions(sessionsData);
+            }
         } catch (error) {
             handleApiError(error, "Erreur lors du chargement des données du tableau de bord");
         } finally {
             setLoading(false);
         }
-    };
-
-    // Calculate statistics
+    }; 
     const totalAbsences = absences.length;
     const totalStudents = students.length;
     const totalClasses = classes.length;
     const totalTeachers = teachers.length;
     const totalSessions = sessions.length;
     const pendingJustifications = justifications.filter(j => j.etat === 'en attente').length;
-
-    // Recent absences (last 5)
+ 
     const recentAbsences = absences.slice(0, 5);
-
-    // Absence statistics by status
+ 
     const absentCount = absences.filter(a => a.statut === 'absent').length;
     const presentCount = absences.filter(a => a.statut === 'present').length;
     const lateCount = absences.filter(a => a.statut === 'retard').length;
@@ -80,18 +109,7 @@ export default function Dashboard() {
         return 'Séance inconnue';
     };
 
-    const getStatusBadgeVariant = (status: string) => {
-        switch (status) {
-            case 'absent':
-                return 'destructive';
-            case 'present':
-                return 'default';
-            case 'retard':
-                return 'secondary';
-            default:
-                return 'outline';
-        }
-    };
+    
 
     return (
         <div className="space-y-6">
@@ -173,15 +191,15 @@ export default function Dashboard() {
                             <CardContent>
                                 <div className="space-y-4">
                                     <div className="grid grid-cols-3 gap-4">
-                                        <div className="flex flex-col items-center justify-center p-4 bg-red-50 dark:bg-red-950 rounded-lg">
+                                        <div className="flex flex-col items-center justify-center p-4 bg-red-50/20 dark:bg-red-950 rounded-lg">
                                             <div className="text-3xl font-bold text-red-600 dark:text-red-400">{absentCount}</div>
                                             <p className="text-sm text-red-600 dark:text-red-400">Absents</p>
                                         </div>
-                                        <div className="flex flex-col items-center justify-center p-4 bg-green-50 dark:bg-green-950 rounded-lg">
+                                        <div className="flex flex-col items-center justify-center p-4 bg-green-50/20 dark:bg-green-950 rounded-lg">
                                             <div className="text-3xl font-bold text-green-600 dark:text-green-400">{presentCount}</div>
                                             <p className="text-sm text-green-600 dark:text-green-400">Présents</p>
                                         </div>
-                                        <div className="flex flex-col items-center justify-center p-4 bg-orange-50 dark:bg-orange-950 rounded-lg">
+                                        <div className="flex flex-col items-center justify-center p-4 bg-orange-50/20 dark:bg-orange-950 rounded-lg">
                                             <div className="text-3xl font-bold text-orange-600 dark:text-orange-400">{lateCount}</div>
                                             <p className="text-sm text-orange-600 dark:text-orange-400">Retards</p>
                                         </div>
@@ -218,7 +236,7 @@ export default function Dashboard() {
                                                         {getSessionInfo(absence)}
                                                     </p>
                                                 </div>
-                                                <Badge variant={getStatusBadgeVariant(absence.statut)}>
+                                                <Badge variant={"outline"} className={cn("text-xs", absence.statut === "absent" && "outline-red-500 text-red-500")}>
                                                     {absence.statut}
                                                 </Badge>
                                             </div>

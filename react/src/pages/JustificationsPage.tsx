@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Search, Filter } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -27,59 +27,59 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { getAllAbsences } from "@/services/absenceService";
+import { getAllAbsences, getStudentAbsence } from "@/services/absenceService";
 import type { Absence, Justification } from "@/types";
-import { createJustification, deleteJustification, getAllJustifications, updateJustification } from "@/services/justificationService";
+import { createJustification, deleteJustification, getAllJustifications, getStudentJustifications, updateJustification } from "@/services/justificationService";
 import { handleApiError } from "@/utils/apiUtils";
 import { JustificationForm } from "@/components/forms/JustificationForm";
 import { useAuth } from "@/contexts/AuthContext";
+import { cn } from "@/lib/utils";
 
 export default function JustificationsPage() {
     const [justifications, setJustifications] = useState<Justification[]>([]);
     const [absences, setAbsences] = useState<Absence[]>([]);
+    
+    const [editingJustification, setEditingJustification] = useState<Justification | null>(null);
     const [loading, setLoading] = useState(true);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    
+    const { user , isLoading} = useAuth();
+    const isAdmin = user?.role === 'admin';
 
     useEffect(() => {
-        fetchData();
-    }, []);
-
-    const { user } = useAuth();
-
+        if (!isLoading && user) {
+            fetchData();
+        }
+    }, [isLoading, user]);
+    
     const fetchData = async () => {
         try {
+
             setLoading(true);
-            const [justificationsData, absencesData] = await Promise.all([
-                getAllJustifications(),
-                getAllAbsences()
-            ]);
-
-            // Filter for students - only show their own justifications
-            let filteredJustifications = justificationsData;
-            let filteredAbsences = absencesData;
-
-            if (user?.role === 'student' && user?.etudiant) {
-                // Filter absences to only student's absences
-                filteredAbsences = absencesData.filter((absence: Absence) => {
-                    const etudiantId = typeof absence.etudiant === 'object'
-                        ? absence.etudiant._id
-                        : absence.etudiant;
-                    return etudiantId === user.etudiant;
-                });
-
-                // Filter justifications to only those for student's absences
-                const studentAbsenceIds = filteredAbsences.map((a: Absence) => a._id);
-                filteredJustifications = justificationsData.filter((just: Justification) => {
-                    const absenceId = typeof just.absence === 'object'
-                        ? just.absence._id
-                        : just.absence;
-                    return studentAbsenceIds.includes(absenceId);
-                });
+            if(isLoading){
+                return;
             }
+            if(isAdmin){
+                const [justificationsData, absencesData] = await Promise.all([
+                    getAllJustifications(),
+                    getAllAbsences()
+                ]);
+                setJustifications(justificationsData);
+                setAbsences(absencesData);
+            }else{
+                if(user?.etudiant == null){
+                    return;
+                }
+                console.log(user.etudiant);
+                const justificationsData = await getStudentJustifications(user.etudiant);
+                const absencesData = await getStudentAbsence(user.etudiant);
+                setJustifications(justificationsData);
+                setAbsences(absencesData);
+            }
+  
 
-            setJustifications(filteredJustifications);
-            setAbsences(filteredAbsences);
+             
         } catch (error) {
             handleApiError(error, "Erreur lors du chargement des données");
         } finally {
@@ -89,9 +89,48 @@ export default function JustificationsPage() {
 
     const handleCreateJustification = async (values: any) => {
         try {
+            if(!user){
+                toast.error("Vous devez être connecté pour soumettre une justification",
+                    {
+                        duration: 5000,
+                        position: "top-right",
+                        style: {
+                            background: "#4ade80",
+                            color: "#fff",
+                        },
+                    }
+                );
+                return;
+            }
             setIsSubmitting(true);
-            await createJustification({ ...values, absence: values.absenceId, etat: 'en attente' });
-            toast.success("Justification soumise");
+            if(editingJustification){
+                await updateJustification(editingJustification._id, values);
+                toast.success("Justification mise à jour",
+                    {
+                        duration: 5000,
+                        position: "top-right",
+                        style: {
+                            background: "#4ade80",
+                            color: "#fff",
+                        },
+                    }
+                );
+                setIsDialogOpen(false);
+                fetchData();
+                return;
+            }else{
+                await createJustification({ ...values, absence: values.absenceId, etat: 'en attente' , etudiant: user?.etudiant });
+                toast.success("Justification soumise",
+                    {
+                        duration: 5000,
+                        position: "top-right",
+                        style: {
+                            background: "#4ade80",
+                            color: "#fff",
+                        },
+                    }
+                );
+            }
             setIsDialogOpen(false);
             fetchData();
         } catch (error) {
@@ -103,8 +142,20 @@ export default function JustificationsPage() {
 
     const handleDeleteJustification = async (id: string) => {
         try {
+            if(!confirm("Voulez-vous vraiment supprimer cette justification ?")){
+                return;
+            }
             await deleteJustification(id);
-            toast.success("Justification supprimée");
+            toast.success("Justification supprimée",
+                {
+                    duration: 5000,
+                    position: "top-right",
+                    style: {
+                        background: "#4ade80",
+                        color: "#fff",
+                    },
+                }
+            );
             setJustifications(justifications.filter(j => j._id !== id));
         } catch (error) {
             handleApiError(error, "Erreur lors de la suppression");
@@ -114,14 +165,26 @@ export default function JustificationsPage() {
     const handleValidateJustification = async (id: string, isValid: boolean) => {
         try {
             await updateJustification(id, { etat: isValid ? 'validé' : 'refusé' });
-            toast.success(`Justification ${isValid ? 'validée' : 'refusée'}`);
+            toast.success(`Justification ${isValid ? 'validée' : 'refusée'}`,
+                {
+                    duration: 5000,
+                    position: "top-right",
+                    style: {
+                        background: "#4ade80",
+                        color: "#fff",
+                    },
+                }
+            );
             fetchData();
         } catch (error) {
             handleApiError(error, "Erreur lors de la mise à jour");
         }
     };
 
-    const isAdmin = user?.role === 'admin';
+    const openEditDialog = (justification: Justification) => {
+        setIsDialogOpen(true);
+        setEditingJustification(justification);
+    };
 
     return (
         <div className="space-y-6">
@@ -165,10 +228,7 @@ export default function JustificationsPage() {
                         placeholder="Rechercher..."
                         className="pl-8 w-full md:w-[300px]"
                     />
-                </div>
-                <Button variant="outline">
-                    <Filter className="mr-2 h-4 w-4" /> Filtrer
-                </Button>
+                </div> 
             </div>
 
             <Card>
@@ -188,7 +248,7 @@ export default function JustificationsPage() {
                                     <TableHead>Fichier</TableHead>
                                     <TableHead>Commentaire</TableHead>
                                     <TableHead>État</TableHead>
-                                    <TableHead className="text-right">Actions</TableHead>
+                                    { isAdmin ?  <TableHead className="text-right">Actions</TableHead> : <TableHead className="text-right"> </TableHead> }
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -197,10 +257,7 @@ export default function JustificationsPage() {
                                         <TableCell className="font-medium">{justification.fichier}</TableCell>
                                         <TableCell>{justification.commentaire}</TableCell>
                                         <TableCell>
-                                            <Badge variant={
-                                                justification.etat === 'validé' ? 'default' :
-                                                    justification.etat === 'refusé' ? 'destructive' : 'secondary'
-                                            }>
+                                            <Badge variant="outline" className={cn(" text-gray-600", justification.etat === 'validé' && " text-green-600", justification.etat === 'refusé' && " text-red-600", justification.etat === 'en attente' && " text-yellow-600")}>
                                                 {justification.etat}
                                             </Badge>
                                         </TableCell>
@@ -216,9 +273,15 @@ export default function JustificationsPage() {
                                                 </>
                                             )}
                                             {isAdmin && (
-                                                <Button variant="ghost" size="sm" onClick={() => handleDeleteJustification(justification._id)}>
+                                                <>
+                                                 <Button variant="outline" size="sm" onClick={() => openEditDialog(justification)}>
+                                                    Modifier
+                                                </Button>
+                                                 <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700" onClick={() => handleDeleteJustification(justification._id)}>
                                                     Supprimer
                                                 </Button>
+                                                </>
+                                               
                                             )}
                                         </TableCell>
                                     </TableRow>

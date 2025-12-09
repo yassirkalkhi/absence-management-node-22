@@ -10,9 +10,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
     "start": "node dist/server.js",
-    "dev": "nodemon src/server.ts",
-    "test:api": "ts-node src/test-api.ts",
-    "test:student-activation": "ts-node src/test-student-activation.ts"
+    "dev": "nodemon src/server.ts"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

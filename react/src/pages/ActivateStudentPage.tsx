@@ -17,8 +17,7 @@ export default function ActivateStudentPage() {
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
     const { login, isAuthenticated } = useAuth();
-
-    // Redirect if already authenticated
+ 
     useEffect(() => {
         if (isAuthenticated) {
             navigate('/', { replace: true });
@@ -30,14 +29,12 @@ export default function ActivateStudentPage() {
         e.stopPropagation();
 
         setError('');
-
-        // Validate passwords match
+ 
         if (password !== confirmPassword) {
             setError('Les mots de passe ne correspondent pas');
             return;
         }
-
-        // Validate password length
+ 
         if (password.length < 6) {
             setError('Le mot de passe doit contenir au moins 6 caractères');
             return;
@@ -47,9 +44,11 @@ export default function ActivateStudentPage() {
 
         try {
             const response = await activateStudent({ email, password });
+            console.log( response);
             login(response.user, response.token);
             navigate('/', { replace: true });
         } catch (err: any) {
+            console.error('❌ Activation error:', err);
             setError(err.response?.data?.message || 'Erreur lors de l\'activation du compte');
         } finally {
             setIsLoading(false);
@@ -57,7 +56,7 @@ export default function ActivateStudentPage() {
     };
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4">
+        <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-gray-50 to-gray-100 p-4">
             <Card className="w-full max-w-md shadow-lg">
                 <CardHeader className="space-y-3 pb-6">
                     <div className="flex justify-center">
@@ -177,9 +176,6 @@ export default function ActivateStudentPage() {
                         </div>
 
                         <div className="text-center">
-                            <p className="text-sm text-muted-foreground mb-2">
-                                Vous avez déjà un compte ?
-                            </p>
                             <Link
                                 to="/login"
                                 className="text-sm font-medium text-primary hover:underline inline-flex items-center"

@@ -1,6 +1,5 @@
 import express from 'express';
-import { register, login, activateStudentAccount } from '../controllers/authController';
-import { authenticate } from '../middleware/auth';
+import { register, login, activateStudentAccount } from '../controllers/authController'; 
 
 const router = express.Router();
  

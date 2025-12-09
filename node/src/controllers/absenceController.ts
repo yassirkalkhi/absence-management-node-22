@@ -21,6 +21,17 @@ export const getAbsences = async (req: Request, res: Response): Promise<void> =>
         res.status(500).json({ message: (error as Error).message });
     }
 };
+export const getAbsencesByEtudiant = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const absences = await Absence.find({ etudiant: req.params.id })
+            .populate('etudiant')
+            .populate('seance');
+        res.status(200).json(absences);
+    } catch (error) {
+        res.status(500).json({ message: (error as Error).message });
+    }
+};
+
 
 export const getAbsenceById = async (req: Request, res: Response): Promise<void> => {
     try {
