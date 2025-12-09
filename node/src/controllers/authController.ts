@@ -83,51 +83,7 @@ export const activateStudentAccount = async (req: Request, res: Response): Promi
     }
 };
  
-export const register = async (req: Request, res: Response): Promise<void> => {
-    try {
-        const { email, password, nom, prenom, role } = req.body;
  
-        if (role && role !== 'admin') {
-            res.status(400).json({
-                message: 'Cet endpoint est réservé aux comptes administrateur. Les étudiants doivent utiliser /api/auth/activate-student.'
-            });
-            return;
-        }
- 
-        const existingUser = await User.findOne({ email });
-        if (existingUser) {
-            res.status(400).json({ message: 'Un utilisateur avec cet email existe déjà.' });
-            return;
-        }
- 
-        const user = new User({
-            email,
-            password,
-            nom,
-            prenom,
-            role: 'admin'
-        });
-
-        await user.save();
- 
-        const token = generateToken(user._id.toString());
- 
-        res.status(201).json({
-            message: 'Administrateur créé avec succès.',
-            token,
-            user: {
-                id: user._id,
-                email: user.email,
-                nom: user.nom,
-                prenom: user.prenom,
-                role: user.role
-            }
-        });
-    } catch (error) {
-        console.error('Erreur lors de l\'inscription:', error);
-        res.status(500).json({ message: 'Erreur lors de l\'inscription.', error: (error as Error).message });
-    }
-};
  
 export const login = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -168,7 +124,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         });
     } catch (error) {
         console.error('Erreur lors de la connexion:', error);
-        res.status(500).json({ message: 'Erreur lors de la connexion.', error: (error as Error).message });
+        res.status(402).json({ message: 'Erreur lors de la connexion.', error: (error as Error).message });
     }
 };
 

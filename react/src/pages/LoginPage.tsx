@@ -16,7 +16,7 @@ export default function LoginPage() {
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
     const { login, isAuthenticated } = useAuth();
- 
+
     useEffect(() => {
         if (isAuthenticated) {
             navigate('/', { replace: true });
@@ -25,8 +25,7 @@ export default function LoginPage() {
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        e.stopPropagation();
- 
+
         setError('');
         setIsLoading(true);
 
@@ -36,9 +35,17 @@ export default function LoginPage() {
             console.log('✅ Login successful:', response);
             login(response.user, response.token);
             navigate('/', { replace: true });
-        } catch (err: any) { 
-            const errorMessage = err.response?.data?.message || 'Erreur lors de la connexion';
-             
+        } catch (err: any) {
+            console.error('Login error:', err);
+            let errorMessage = 'Erreur lors de la connexion';
+
+            // Handle errors from our custom fetch wrapper or generic errors
+            if (err.response?.data?.message) {
+                errorMessage = err.response.data.message;
+            } else if (err.message) {
+                errorMessage = err.message;
+            }
+
             setError(errorMessage);
         } finally {
             setIsLoading(false);
@@ -128,7 +135,7 @@ export default function LoginPage() {
                             <div className="absolute inset-0 flex items-center">
                                 <span className="w-full border-t" />
                             </div>
-                            
+
                         </div>
 
                         <div className="text-center">
