@@ -12,8 +12,7 @@ const runSeed = async () => {
          const alreadySeeded = await User.countDocuments();
 
         if (alreadySeeded > 0) {
-            console.log("Database already seeded. Skipping...");
-            return;
+            console.log("Database already seeded. Skipping..."); 
         }else{
             await seedDatabase();
         }
