@@ -124,7 +124,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         });
     } catch (error) {
         console.error('Erreur lors de la connexion:', error);
-        res.status(402).json({ message: 'Erreur lors de la connexion.', error: (error as Error).message });
+        res.status(500).json({ message: 'Erreur lors de la connexion.', error: (error as Error).message });
     }
 };
 

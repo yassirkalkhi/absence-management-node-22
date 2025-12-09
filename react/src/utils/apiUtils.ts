@@ -9,8 +9,8 @@ export const handleApiError = (error: unknown, defaultMessage: string) => {
                 duration: 5000,
                 position: "top-right",
                 style: {
-                    background: "#4ade80",
-                    color: "#fff",
+                 background: "#4ade80",
+                        color: "#fff",
                 },
             }
         );
@@ -21,7 +21,7 @@ export const handleApiError = (error: unknown, defaultMessage: string) => {
                 position: "top-right",
                 style: {
                     background: "#4ade80",
-                    color: "#fff",
+                        color: "#fff",
                 },
             }
         );
@@ -31,8 +31,8 @@ export const handleApiError = (error: unknown, defaultMessage: string) => {
                 duration: 5000,
                 position: "top-right",
                 style: {
-                    background: "#4ade80",
-                    color: "#fff",
+                  background: "#4ade80",
+                        color: "#fff",
                 },
             }
         );

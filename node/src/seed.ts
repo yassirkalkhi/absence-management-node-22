@@ -10,6 +10,7 @@ const runSeed = async () => {
         await connectDB();
         await seedDatabase();
         await ensureAdminExists();
+        
         process.exit(0);
     } catch (error) {
         console.error('Seeding failed:', error);
