@@ -8,19 +8,20 @@ import seanceRoutes from './routes/seanceRoutes';
 import absenceRoutes from './routes/absenceRoutes';
 import justificationRoutes from './routes/justificationRoutes';
 import authRoutes from './routes/authRoutes';
+import { protect } from './middleware/authMiddleware';
 
 const app: Application = express();
 
 app.use(express.json());
 app.use(cors({ origin: ['http://localhost:5173','http://localhost'] }));
 
-app.use('/api/classes', classeRoutes);
-app.use('/api/modules', moduleRoutes);
-app.use('/api/etudiants', etudiantRoutes);
-app.use('/api/enseignants', enseignantRoutes);
-app.use('/api/seances', seanceRoutes);
-app.use('/api/absences', absenceRoutes);
-app.use('/api/justifications', justificationRoutes);
+app.use('/api/classes', protect, classeRoutes);
+app.use('/api/modules', protect, moduleRoutes);
+app.use('/api/etudiants', protect, etudiantRoutes);
+app.use('/api/enseignants', protect, enseignantRoutes);
+app.use('/api/seances', protect, seanceRoutes);
+app.use('/api/absences', protect, absenceRoutes);
+app.use('/api/justifications', protect, justificationRoutes);
 app.use('/api/auth', authRoutes);
 
 
