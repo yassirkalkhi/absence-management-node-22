@@ -17,7 +17,7 @@ export interface Student {
     nom: string;
     prenom: string;
     email: string;
-    classe: Class | string;  
+    classe: Class | string;
     isActivated?: boolean;
 }
 
@@ -32,7 +32,7 @@ export interface Teacher {
 
 export interface Session {
     _id: string;
-    date_seance: string; 
+    date_seance: string;
     heure_debut: string;
     heure_fin: string;
     enseignant: Teacher | string;
@@ -55,14 +55,15 @@ export interface Justification {
     commentaire: string;
     etat: 'en attente' | 'validé' | 'refusé';
 }
- 
+
 export interface User {
     id: string;
     email: string;
     nom: string;
     prenom: string;
-    role: 'student' | 'admin';
+    role: 'student' | 'admin' | 'professor';
     etudiant?: string;
+    enseignant?: string;
 }
 
 export interface AuthResponse {

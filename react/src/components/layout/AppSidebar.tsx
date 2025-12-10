@@ -23,8 +23,8 @@ import {
 } from "@/components/ui/sidebar"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import { useAuth } from "@/contexts/AuthContext"
-import { Button } from "@/components/ui/button" 
- 
+import { Button } from "@/components/ui/button"
+
 const adminItems = [
     {
         title: "Tableau de bord",
@@ -67,7 +67,7 @@ const adminItems = [
         icon: FileCheck,
     },
 ]
- 
+
 const studentItems = [
     {
         title: "Mes Absences",
@@ -81,12 +81,45 @@ const studentItems = [
     },
 ]
 
+const professorItems = [
+    {
+        title: "Absences",
+        url: "/absences",
+        icon: AlertCircle,
+    },
+    {
+        title: "Mes Étudiants",
+        url: "/etudiants",
+        icon: GraduationCap,
+    },
+    {
+        title: "Mes Séances",
+        url: "/seances",
+        icon: Calendar,
+    },
+    {
+        title: "Mes Modules",
+        url: "/modules",
+        icon: BookOpen,
+    },
+    {
+        title: "Mes Classes",
+        url: "/classes",
+        icon: Users,
+    },
+]
+
 export function AppSidebar() {
     const location = useLocation();
     const navigate = useNavigate();
     const { user, logout } = useAuth();
- 
-    const items = user?.role === 'admin' ? adminItems : studentItems;
+
+    let items = studentItems;
+    if (user?.role === 'admin') {
+        items = adminItems;
+    } else if (user?.role === 'professor') {
+        items = professorItems;
+    }
 
     const handleLogout = () => {
         logout();
@@ -123,14 +156,14 @@ export function AppSidebar() {
                         <div className="p-3 w-full space-y-3">
                             <div className="flex items-center gap-3 rounded-lg border p-3 bg-card">
                                 <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                                   {user?.role === "admin" ? <UserStar className="h-5 w-5 text-primary" /> : <User className="h-5 w-5 text-primary" />}
+                                    {user?.role === "admin" ? <UserStar className="h-5 w-5 text-primary" /> : <User className="h-5 w-5 text-primary" />}
                                 </div>
 
                                 <div className="flex-1 overflow-hidden">
                                     <p className="font-semibold truncate text-sm">
                                         {user?.nom} {user?.prenom}
                                     </p>
-                                     
+
                                 </div>
                             </div>
 

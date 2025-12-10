@@ -20,3 +20,8 @@ export const deleteTeacher = async (id: string) => {
     const response = await api.delete(`/enseignants/${id}`);
     return response.data;
 };
+
+export const getEnseignantById = async (id: string) => {
+    const response = await api.get(`/enseignants/${id}`);
+    return response.data;
+};

@@ -1,37 +1,37 @@
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import User from '../models/User';
-import Etudiant from '../models/Etudiant'; 
+import Etudiant from '../models/Etudiant';
 
 
 const generateToken = (userId: string): string => {
     return jwt.sign(
         { userId },
         process.env.JWT_SECRET || 'your-secret-key',
-        { expiresIn: '7d' }  
+        { expiresIn: '7d' }
     );
 };
- 
+
 export const activateStudentAccount = async (req: Request, res: Response): Promise<void> => {
-  
+
     try {
-        const { email, password} = req.body;
- 
+        const { email, password } = req.body;
+
         if (!email || !password) {
             res.status(400).json({ message: 'Email et mot de passe requis.' });
             return;
         }
 
-        const existingUser = await User.findOne({ email: email.toLowerCase() });  
+        const existingUser = await User.findOne({ email: email.toLowerCase() });
 
         if (existingUser) {
             res.status(400).json({ message: 'Un compte utilisateur existe déjà pour cet email.' });
             return;
         }
-        
-  
+
+
         const etudiant = await Etudiant.findOne({ email: email.toLowerCase() });
-        
+
 
         if (!etudiant) {
             res.status(404).json({
@@ -54,15 +54,15 @@ export const activateStudentAccount = async (req: Request, res: Response): Promi
             prenom: etudiant.prenom,
             role: 'student',
             etudiant: etudiant._id
-        }); 
+        });
         await user.save();
-        
-       await Etudiant.updateOne(
-        { _id: etudiant._id },
-        { isActivated: true },
-        { runValidators: false }
+
+        await Etudiant.updateOne(
+            { _id: etudiant._id },
+            { isActivated: true },
+            { runValidators: false }
         );
-        
+
         const token = generateToken(user._id.toString());
 
         res.status(201).json({
@@ -74,42 +74,43 @@ export const activateStudentAccount = async (req: Request, res: Response): Promi
                 nom: user.nom,
                 prenom: user.prenom,
                 role: user.role,
-                etudiant: user.etudiant
+                etudiant: user.etudiant,
+                enseignant: user.enseignant
             }
-        }); 
-    } catch (error : any) { 
-  
-       res.status(200).json({ message: error.message });
+        });
+    } catch (error: any) {
+
+        res.status(200).json({ message: error.message });
     }
 };
- 
- 
- 
+
+
+
 export const login = async (req: Request, res: Response): Promise<void> => {
     try {
         const { email, password } = req.body;
- 
+
         if (!email || !password) {
             res.status(400).json({ message: 'Email et mot de passe requis.' });
             return;
         }
- 
+
         const user = await User.findOne({ email }).select('+password');
 
         if (!user) {
             res.status(401).json({ message: 'Email ou mot de passe incorrect.' });
             return;
         }
- 
+
         const isPasswordValid = await user.comparePassword(password);
 
         if (!isPasswordValid) {
             res.status(401).json({ message: 'Email ou mot de passe incorrect.' });
             return;
         }
- 
+
         const token = generateToken(user._id.toString());
- 
+
         res.status(200).json({
             message: 'Connexion réussie.',
             token,
@@ -119,7 +120,8 @@ export const login = async (req: Request, res: Response): Promise<void> => {
                 nom: user.nom,
                 prenom: user.prenom,
                 role: user.role,
-                etudiant: user.etudiant
+                etudiant: user.etudiant,
+                enseignant: user.enseignant
             }
         });
     } catch (error) {
@@ -128,4 +130,4 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
- 
+

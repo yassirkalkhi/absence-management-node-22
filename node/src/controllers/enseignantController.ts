@@ -1,10 +1,30 @@
 import { Request, Response } from 'express';
 import Enseignant, { IEnseignant } from '../models/Enseignant';
+import User from '../models/User';
 
 export const createEnseignant = async (req: Request, res: Response): Promise<void> => {
     try {
+        const { email, password, nom, prenom } = req.body;
+
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            res.status(400).json({ message: 'Un utilisateur avec cet email existe déjà' });
+            return;
+        }
+
         const newEnseignant: IEnseignant = new Enseignant(req.body);
         const savedEnseignant = await newEnseignant.save();
+
+        const newUser = new User({
+            email,
+            password,
+            nom,
+            prenom,
+            role: 'professor',
+            enseignant: savedEnseignant._id
+        });
+        await newUser.save();
+
         res.status(201).json(savedEnseignant);
     } catch (error) {
         res.status(400).json({ message: (error as Error).message });

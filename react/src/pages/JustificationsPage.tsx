@@ -38,13 +38,13 @@ import { cn } from "@/lib/utils";
 export default function JustificationsPage() {
     const [justifications, setJustifications] = useState<Justification[]>([]);
     const [absences, setAbsences] = useState<Absence[]>([]);
-    
+
     const [editingJustification, setEditingJustification] = useState<Justification | null>(null);
     const [loading, setLoading] = useState(true);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    
-    const { user , isLoading} = useAuth();
+
+    const { user, isLoading } = useAuth();
     const isAdmin = user?.role === 'admin';
 
     useEffect(() => {
@@ -52,23 +52,23 @@ export default function JustificationsPage() {
             fetchData();
         }
     }, [isLoading, user]);
-    
+
     const fetchData = async () => {
         try {
 
             setLoading(true);
-            if(isLoading){
+            if (isLoading) {
                 return;
             }
-            if(isAdmin){
+            if (isAdmin) {
                 const [justificationsData, absencesData] = await Promise.all([
                     getAllJustifications(),
                     getAllAbsences()
                 ]);
                 setJustifications(justificationsData);
                 setAbsences(absencesData);
-            }else{
-                if(user?.etudiant == null){
+            } else {
+                if (user?.etudiant == null) {
                     return;
                 }
                 console.log(user.etudiant);
@@ -77,9 +77,9 @@ export default function JustificationsPage() {
                 setJustifications(justificationsData);
                 setAbsences(absencesData);
             }
-  
 
-             
+
+
         } catch (error) {
             handleApiError(error, "Erreur lors du chargement des données");
         } finally {
@@ -89,7 +89,7 @@ export default function JustificationsPage() {
 
     const handleCreateJustification = async (values: any) => {
         try {
-            if(!user){
+            if (!user) {
                 toast.error("Vous devez être connecté pour soumettre une justification",
                     {
                         duration: 5000,
@@ -103,7 +103,7 @@ export default function JustificationsPage() {
                 return;
             }
             setIsSubmitting(true);
-            if(editingJustification){
+            if (editingJustification) {
                 await updateJustification(editingJustification._id, values);
                 toast.success("Justification mise à jour",
                     {
@@ -118,8 +118,8 @@ export default function JustificationsPage() {
                 setIsDialogOpen(false);
                 fetchData();
                 return;
-            }else{
-                await createJustification({ ...values, absence: values.absenceId, etat: 'en attente' , etudiant: user?.etudiant });
+            } else {
+                await createJustification({ ...values, absence: values.absenceId, etat: 'en attente', etudiant: user?.etudiant });
                 toast.success("Justification soumise",
                     {
                         duration: 5000,
@@ -142,7 +142,7 @@ export default function JustificationsPage() {
 
     const handleDeleteJustification = async (id: string) => {
         try {
-            if(!confirm("Voulez-vous vraiment supprimer cette justification ?")){
+            if (!confirm("Voulez-vous vraiment supprimer cette justification ?")) {
                 return;
             }
             await deleteJustification(id);
@@ -186,6 +186,14 @@ export default function JustificationsPage() {
         setEditingJustification(justification);
     };
 
+    const [searchQuery, setSearchQuery] = useState("");
+
+    const filteredJustifications = justifications.filter(justification =>
+        justification.commentaire?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        justification.etat.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        justification.fichier.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -227,8 +235,10 @@ export default function JustificationsPage() {
                     <Input
                         placeholder="Rechercher..."
                         className="pl-8 w-full md:w-[300px]"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
                     />
-                </div> 
+                </div>
             </div>
 
             <Card>
@@ -248,11 +258,11 @@ export default function JustificationsPage() {
                                     <TableHead>Fichier</TableHead>
                                     <TableHead>Commentaire</TableHead>
                                     <TableHead>État</TableHead>
-                                    { isAdmin ?  <TableHead className="text-right">Actions</TableHead> : <TableHead className="text-right"> </TableHead> }
+                                    {isAdmin ? <TableHead className="text-right">Actions</TableHead> : <TableHead className="text-right"> </TableHead>}
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {justifications.map((justification) => (
+                                {filteredJustifications.map((justification) => (
                                     <TableRow key={justification._id}>
                                         <TableCell className="font-medium">{justification.fichier}</TableCell>
                                         <TableCell>{justification.commentaire}</TableCell>
@@ -274,14 +284,14 @@ export default function JustificationsPage() {
                                             )}
                                             {isAdmin && (
                                                 <>
-                                                 <Button variant="outline" size="sm" onClick={() => openEditDialog(justification)}>
-                                                    Modifier
-                                                </Button>
-                                                 <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700" onClick={() => handleDeleteJustification(justification._id)}>
-                                                    Supprimer
-                                                </Button>
+                                                    <Button variant="outline" size="sm" onClick={() => openEditDialog(justification)}>
+                                                        Modifier
+                                                    </Button>
+                                                    <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700" onClick={() => handleDeleteJustification(justification._id)}>
+                                                        Supprimer
+                                                    </Button>
                                                 </>
-                                               
+
                                             )}
                                         </TableCell>
                                     </TableRow>

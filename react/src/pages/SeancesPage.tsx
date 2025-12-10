@@ -33,6 +33,7 @@ import { getAllModules } from "@/services/moduleService";
 import { getAllTeachers } from "@/services/teacherService";
 import { SessionForm } from "@/components/forms/SessionForm";
 import type { Session, Class, Module, Teacher } from "@/types";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function SeancesPage() {
     const [sessions, setSessions] = useState<Session[]>([]);
@@ -43,6 +44,7 @@ export default function SeancesPage() {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingSession, setEditingSession] = useState<Session | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const { user } = useAuth();
 
     useEffect(() => {
         fetchData();
@@ -57,7 +59,17 @@ export default function SeancesPage() {
                 getAllModules(),
                 getAllTeachers()
             ]);
-            setSessions(sessionsData);
+
+            if (user?.role === 'professor' && user.enseignant) {
+                const filteredSessions = sessionsData.filter((session: Session) => {
+                    const teacherId = typeof session.enseignant === 'object' ? session.enseignant?._id : session.enseignant;
+                    return teacherId === user.enseignant;
+                });
+                setSessions(filteredSessions);
+            } else {
+                setSessions(sessionsData);
+            }
+
             setClasses(classesData);
             setModules(modulesData);
             setTeachers(teachersData);
@@ -157,6 +169,21 @@ export default function SeancesPage() {
         return 'Classe inconnue';
     };
 
+    const [searchQuery, setSearchQuery] = useState("");
+
+    const filteredSessions = sessions.filter(session => {
+        const moduleName = getModuleName(session).toLowerCase();
+        const className = getClassName(session).toLowerCase();
+        const teacherName = getTeacherName(session).toLowerCase();
+        const query = searchQuery.toLowerCase();
+
+        return (
+            moduleName.includes(query) ||
+            className.includes(query) ||
+            teacherName.includes(query)
+        );
+    });
+
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -167,35 +194,39 @@ export default function SeancesPage() {
                     </p>
                 </div>
                 <Dialog open={isDialogOpen} onOpenChange={handleDialogChange}>
-                    <DialogTrigger asChild>
-                        <Button onClick={() => setEditingSession(null)}>
-                            <Plus className="mr-2 h-4 w-4" /> Planifier une séance
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-[500px]">
-                        <DialogHeader>
-                            <DialogTitle>{editingSession ? "Modifier la séance" : "Planifier une séance"}</DialogTitle>
-                            <DialogDescription>
-                                {editingSession ? "Modifiez les détails de la séance" : "Remplissez le formulaire pour programmer une nouvelle séance."}
-                            </DialogDescription>
-                        </DialogHeader>
-                        <SessionForm
-                            classes={classes}
-                            modules={modules}
-                            teachers={teachers}
-                            onSubmit={handleCreateOrUpdateSession}
-                            defaultValues={editingSession
-                                ? {
-                                    ...editingSession,
-                                    classe: typeof editingSession.classe === 'object' ? editingSession.classe._id : editingSession.classe,
-                                    module: typeof editingSession.module === 'object' ? editingSession.module._id : editingSession.module,
-                                    enseignant: typeof editingSession.enseignant === 'object' ? editingSession.enseignant._id : editingSession.enseignant
+                    {user?.role === 'admin' && (
+                        <DialogTrigger asChild>
+                            <Button onClick={() => setEditingSession(null)}>
+                                <Plus className="mr-2 h-4 w-4" /> Planifier une séance
+                            </Button>
+                        </DialogTrigger>
+                    )}
+                    {user?.role === 'admin' && (
+                        <DialogContent className="sm:max-w-[500px]">
+                            <DialogHeader>
+                                <DialogTitle>{editingSession ? "Modifier la séance" : "Planifier une séance"}</DialogTitle>
+                                <DialogDescription>
+                                    {editingSession ? "Modifiez les détails de la séance" : "Remplissez le formulaire pour programmer une nouvelle séance."}
+                                </DialogDescription>
+                            </DialogHeader>
+                            <SessionForm
+                                classes={classes}
+                                modules={modules}
+                                teachers={teachers}
+                                onSubmit={handleCreateOrUpdateSession}
+                                defaultValues={editingSession
+                                    ? {
+                                        ...editingSession,
+                                        classe: typeof editingSession.classe === 'object' ? editingSession.classe._id : editingSession.classe,
+                                        module: typeof editingSession.module === 'object' ? editingSession.module._id : editingSession.module,
+                                        enseignant: typeof editingSession.enseignant === 'object' ? editingSession.enseignant._id : editingSession.enseignant
+                                    }
+                                    : undefined
                                 }
-                                : undefined
-                            }
-                            isLoading={isSubmitting}
-                        />
-                    </DialogContent>
+                                isLoading={isSubmitting}
+                            />
+                        </DialogContent>
+                    )}
                 </Dialog>
             </div>
 
@@ -205,8 +236,10 @@ export default function SeancesPage() {
                     <Input
                         placeholder="Rechercher une séance..."
                         className="pl-8 w-full md:w-[300px]"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
                     />
-                </div> 
+                </div>
             </div>
 
             <Card>
@@ -228,11 +261,11 @@ export default function SeancesPage() {
                                     <TableHead>Module</TableHead>
                                     <TableHead>Classe</TableHead>
                                     <TableHead>Enseignant</TableHead>
-                                    <TableHead className="text-right">Actions</TableHead>
+                                    {user?.role === 'admin' && <TableHead className="text-right">Actions</TableHead>}
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {sessions.map((session) => (
+                                {filteredSessions.map((session) => (
                                     <TableRow key={session._id}>
                                         <TableCell>
                                             {new Date(session.date_seance).toLocaleDateString()}
@@ -243,14 +276,16 @@ export default function SeancesPage() {
                                         <TableCell>{getModuleName(session)}</TableCell>
                                         <TableCell>{getClassName(session)}</TableCell>
                                         <TableCell>{getTeacherName(session)}</TableCell>
-                                        <TableCell className="text-right space-x-2">
-                                            <Button variant="outline" size="sm" onClick={() => openEditDialog(session)}>
-                                                Modifier
-                                            </Button>
-                                            <Button variant="outline" className="outline text-red-500 hover:text-red-600" size="sm" onClick={() => handleDeleteSession(session._id)}>
-                                                Supprimer
-                                            </Button>
-                                        </TableCell>
+                                        {user?.role === 'admin' && (
+                                            <TableCell className="text-right space-x-2">
+                                                <Button variant="outline" size="sm" onClick={() => openEditDialog(session)}>
+                                                    Modifier
+                                                </Button>
+                                                <Button variant="outline" className="outline text-red-500 hover:text-red-600" size="sm" onClick={() => handleDeleteSession(session._id)}>
+                                                    Supprimer
+                                                </Button>
+                                            </TableCell>
+                                        )}
                                     </TableRow>
                                 ))}
                                 {sessions.length === 0 && (

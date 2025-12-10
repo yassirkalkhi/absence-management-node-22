@@ -31,6 +31,8 @@ import { getAllStudents, createStudent, updateStudent, deleteStudent } from "@/s
 import { getAllClasses } from "@/services/classService";
 import { StudentForm } from "@/components/forms/StudentForm";
 import type { Student, Class } from "@/types";
+import { useAuth } from "@/contexts/AuthContext";
+import { getEnseignantById } from "@/services/teacherService";
 
 export default function EtudiantsPage() {
     const [students, setStudents] = useState<Student[]>([]);
@@ -44,6 +46,8 @@ export default function EtudiantsPage() {
         fetchData();
     }, []);
 
+    const { user } = useAuth();
+
     const fetchData = async () => {
         try {
             setLoading(true);
@@ -51,7 +55,9 @@ export default function EtudiantsPage() {
                 getAllStudents(),
                 getAllClasses()
             ]);
-            setStudents(studentsData);
+
+        setStudents(studentsData);
+
             setClasses(classesData);
         } catch (error) {
             handleApiError(error, "Erreur lors du chargement des données");
@@ -135,6 +141,14 @@ export default function EtudiantsPage() {
         return 'Classe inconnue';
     };
 
+    const [searchQuery, setSearchQuery] = useState("");
+
+    const filteredStudents = students.filter(student =>
+        student.nom.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        student.prenom.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        student.email.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -144,30 +158,32 @@ export default function EtudiantsPage() {
                         Gérez la liste des étudiants.
                     </p>
                 </div>
-                <Dialog open={isDialogOpen} onOpenChange={handleDialogChange}>
-                    <DialogTrigger asChild>
-                        <Button onClick={() => setEditingStudent(null)}>
-                            <Plus className="mr-2 h-4 w-4" /> Ajouter un étudiant
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-[425px]">
-                        <DialogHeader>
-                            <DialogTitle>{editingStudent ? "Modifier l'étudiant" : "Ajouter un étudiant"}</DialogTitle>
-                            <DialogDescription>
-                                {editingStudent ? "Modifiez les informations de l'étudiant." : "Remplissez le formulaire pour créer un nouvel étudiant."}
-                            </DialogDescription>
-                        </DialogHeader>
-                        <StudentForm
-                            classes={classes}
-                            onSubmit={handleCreateOrUpdateStudent}
-                            defaultValues={editingStudent
-                                ? { ...editingStudent, classe: typeof editingStudent.classe === 'object' ? editingStudent.classe._id : editingStudent.classe }
-                                : undefined
-                            }
-                            isLoading={isSubmitting}
-                        />
-                    </DialogContent>
-                </Dialog>
+                {user?.role === 'admin' && (
+                    <Dialog open={isDialogOpen} onOpenChange={handleDialogChange}>
+                        <DialogTrigger asChild>
+                            <Button onClick={() => setEditingStudent(null)}>
+                                <Plus className="mr-2 h-4 w-4" /> Ajouter un étudiant
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-[425px]">
+                            <DialogHeader>
+                                <DialogTitle>{editingStudent ? "Modifier l'étudiant" : "Ajouter un étudiant"}</DialogTitle>
+                                <DialogDescription>
+                                    {editingStudent ? "Modifiez les informations de l'étudiant." : "Remplissez le formulaire pour créer un nouvel étudiant."}
+                                </DialogDescription>
+                            </DialogHeader>
+                            <StudentForm
+                                classes={classes}
+                                onSubmit={handleCreateOrUpdateStudent}
+                                defaultValues={editingStudent
+                                    ? { ...editingStudent, classe: typeof editingStudent.classe === 'object' ? editingStudent.classe._id : editingStudent.classe }
+                                    : undefined
+                                }
+                                isLoading={isSubmitting}
+                            />
+                        </DialogContent>
+                    </Dialog>
+                )}
             </div>
 
             <div className="flex items-center gap-2">
@@ -176,6 +192,8 @@ export default function EtudiantsPage() {
                     <Input
                         placeholder="Rechercher un étudiant..."
                         className="pl-8 w-full md:w-[300px]"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
                     />
                 </div>
             </div>
@@ -198,24 +216,26 @@ export default function EtudiantsPage() {
                                     <TableHead>Prénom</TableHead>
                                     <TableHead>Email</TableHead>
                                     <TableHead>Classe</TableHead>
-                                    <TableHead className="text-right">Actions</TableHead>
+                                    {user?.role === 'admin' && <TableHead className="text-right">Actions</TableHead>}
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {students.map((student) => (
+                                {filteredStudents.map((student) => (
                                     <TableRow key={student._id}>
                                         <TableCell className="font-medium">{student.nom}</TableCell>
                                         <TableCell>{student.prenom}</TableCell>
                                         <TableCell>{student.email}</TableCell>
                                         <TableCell>{getClassName(student)}</TableCell>
-                                        <TableCell className="text-right space-x-2">
-                                            <Button variant="outline" size="sm" onClick={() => openEditDialog(student)}>
-                                                Modifier
-                                            </Button>
-                                            <Button variant="outline" className="text-red-500 hover:text-red-600" size="sm" onClick={() => handleDeleteStudent(student._id)}>
-                                                Supprimer
-                                            </Button>
-                                        </TableCell>
+                                        {user?.role === 'admin' && (
+                                            <TableCell className="text-right space-x-2">
+                                                <Button variant="outline" size="sm" onClick={() => openEditDialog(student)}>
+                                                    Modifier
+                                                </Button>
+                                                <Button variant="outline" className="text-red-500 hover:text-red-600" size="sm" onClick={() => handleDeleteStudent(student._id)}>
+                                                    Supprimer
+                                                </Button>
+                                            </TableCell>
+                                        )}
                                     </TableRow>
                                 ))}
                                 {students.length === 0 && (

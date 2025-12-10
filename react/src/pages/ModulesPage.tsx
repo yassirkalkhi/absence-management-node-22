@@ -28,8 +28,10 @@ import {
 import { toast } from "sonner";
 import { handleApiError } from "@/utils/apiUtils";
 import { getAllModules, createModule, updateModule, deleteModule } from "@/services/moduleService";
+import { getAllSessions } from "@/services/sessionService";
 import { ModuleForm } from "@/components/forms/ModuleForm";
-import type { Module } from "@/types";
+import type { Module, Session } from "@/types";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function ModulesPage() {
     const [modules, setModules] = useState<Module[]>([]);
@@ -37,6 +39,7 @@ export default function ModulesPage() {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingModule, setEditingModule] = useState<Module | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const { user } = useAuth();
 
     useEffect(() => {
         fetchData();
@@ -46,7 +49,23 @@ export default function ModulesPage() {
         try {
             setLoading(true);
             const data = await getAllModules();
-            setModules(data);
+
+            if (user?.role === 'professor' && user.enseignant) {
+                const sessionsData = await getAllSessions();
+                const teacherSessions = sessionsData.filter((session: Session) => {
+                    const teacherId = typeof session.enseignant === 'object' ? session.enseignant?._id : session.enseignant;
+                    return teacherId === user.enseignant;
+                });
+ 
+                const teacherModuleIds = Array.from(new Set(teacherSessions.map((s: any) =>
+                    typeof s.module === 'object' ? s.module._id : s.module
+                )));
+
+                const filteredModules = data.filter((m: any) => teacherModuleIds.includes(m._id));
+                setModules(filteredModules);
+            } else {
+                setModules(data);
+            }
         } catch (error) {
             handleApiError(error, "Erreur lors du chargement des modules");
         } finally {
@@ -72,7 +91,7 @@ export default function ModulesPage() {
             } else {
                 await createModule(values);
                 toast.success("Module créé avec succès",
-                     {
+                    {
                         duration: 5000,
                         position: "top-right",
                         style: {
@@ -122,6 +141,12 @@ export default function ModulesPage() {
         if (!open) setEditingModule(null);
     };
 
+    const [searchQuery, setSearchQuery] = useState("");
+
+    const filteredModules = modules.filter(module =>
+        module.nom_module.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -131,26 +156,28 @@ export default function ModulesPage() {
                         Gérez les modules d'enseignement.
                     </p>
                 </div>
-                <Dialog open={isDialogOpen} onOpenChange={handleDialogChange}>
-                    <DialogTrigger asChild>
-                        <Button onClick={() => setEditingModule(null)}>
-                            <Plus className="mr-2 h-4 w-4" /> Ajouter un module
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-[425px]">
-                        <DialogHeader>
-                            <DialogTitle>{editingModule ? "Modifier le module" : "Ajouter un module"}</DialogTitle>
-                            <DialogDescription>
-                                {editingModule ? "Modifiez les informations du module." : "Remplissez le formulaire pour créer un nouveau module."}
-                            </DialogDescription>
-                        </DialogHeader>
-                        <ModuleForm
-                            onSubmit={handleCreateOrUpdateModule}
-                            defaultValues={editingModule || undefined}
-                            isLoading={isSubmitting}
-                        />
-                    </DialogContent>
-                </Dialog>
+                {user?.role === 'admin' && (
+                    <Dialog open={isDialogOpen} onOpenChange={handleDialogChange}>
+                        <DialogTrigger asChild>
+                            <Button onClick={() => setEditingModule(null)}>
+                                <Plus className="mr-2 h-4 w-4" /> Ajouter un module
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-[425px]">
+                            <DialogHeader>
+                                <DialogTitle>{editingModule ? "Modifier le module" : "Ajouter un module"}</DialogTitle>
+                                <DialogDescription>
+                                    {editingModule ? "Modifiez les informations du module." : "Remplissez le formulaire pour créer un nouveau module."}
+                                </DialogDescription>
+                            </DialogHeader>
+                            <ModuleForm
+                                onSubmit={handleCreateOrUpdateModule}
+                                defaultValues={editingModule || undefined}
+                                isLoading={isSubmitting}
+                            />
+                        </DialogContent>
+                    </Dialog>
+                )}
             </div>
 
             <div className="flex items-center gap-2">
@@ -159,8 +186,10 @@ export default function ModulesPage() {
                     <Input
                         placeholder="Rechercher un module..."
                         className="pl-8 w-full md:w-[300px]"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
                     />
-                </div> 
+                </div>
             </div>
 
             <Card>
@@ -179,22 +208,24 @@ export default function ModulesPage() {
                                 <TableRow>
                                     <TableHead>Nom du module</TableHead>
                                     <TableHead>Coefficient</TableHead>
-                                    <TableHead className="text-right">Actions</TableHead>
+                                    {user?.role === 'admin' && <TableHead className="text-right">Actions</TableHead>}
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {modules.map((module) => (
+                                {filteredModules.map((module) => (
                                     <TableRow key={module._id}>
                                         <TableCell className="font-medium">{module.nom_module}</TableCell>
                                         <TableCell>{module.coefficient}</TableCell>
-                                        <TableCell className="text-right space-x-2">
-                                            <Button variant="outline" size="sm" onClick={() => openEditDialog(module)}>
-                                                Modifier
-                                            </Button>
-                                            <Button variant="outline" className="outline text-red-500 hover:text-red-600" size="sm" onClick={() => handleDeleteModule(module._id)}>
-                                                Supprimer
-                                            </Button>
-                                        </TableCell>
+                                        {user?.role === 'admin' && (
+                                            <TableCell className="text-right space-x-2">
+                                                <Button variant="outline" size="sm" onClick={() => openEditDialog(module)}>
+                                                    Modifier
+                                                </Button>
+                                                <Button variant="outline" className="outline text-red-500 hover:text-red-600" size="sm" onClick={() => handleDeleteModule(module._id)}>
+                                                    Supprimer
+                                                </Button>
+                                            </TableCell>
+                                        )}
                                     </TableRow>
                                 ))}
                                 {modules.length === 0 && (
@@ -209,6 +240,6 @@ export default function ModulesPage() {
                     )}
                 </CardContent>
             </Card>
-        </div>
+        </div >
     );
 }

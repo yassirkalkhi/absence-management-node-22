@@ -6,8 +6,9 @@ export interface IUser extends Document {
     password: string;
     nom: string;
     prenom: string;
-    role: 'student' | 'admin';
-    etudiant?: mongoose.Types.ObjectId;  
+    role: 'student' | 'admin' | 'professor';
+    etudiant?: mongoose.Types.ObjectId;
+    enseignant?: mongoose.Types.ObjectId;  
     createdAt: Date;
     updatedAt: Date;
     comparePassword(candidatePassword: string): Promise<boolean>;
@@ -40,7 +41,7 @@ const UserSchema: Schema<IUser> = new Schema({
     },
     role: {
         type: String,
-        enum: ['student', 'admin'],
+        enum: ['student', 'admin', 'professor'],
         default: 'student',
         required: true
     },
@@ -49,6 +50,13 @@ const UserSchema: Schema<IUser> = new Schema({
         ref: 'Etudiant',
         required: function (this: any) {
             return this.role === 'student';
+        }
+    },
+    enseignant: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Enseignant',
+        required: function (this: any) {
+            return this.role === 'professor';
         }
     }
 }, {

@@ -29,9 +29,19 @@ function App() {
           </ProtectedRoute>
         }>
 
-          {/* Accessible to both students and admins */}
-          <Route path="absences" element={<AbsencesPage />} />
-          <Route path="justifications" element={<JustificationsPage />} />
+          {/* Accessible to students, admins, and professors */}
+          <Route path="absences" element={
+            <ProtectedRoute allowedRoles={['student', 'admin', 'professor']}>
+              <AbsencesPage />
+            </ProtectedRoute>
+          } />
+
+          {/* Accessible to students and admins only */}
+          <Route path="justifications" element={
+            <ProtectedRoute allowedRoles={['student', 'admin']}>
+              <JustificationsPage />
+            </ProtectedRoute>
+          } />
 
           {/* Admin-only routes */}
           <Route path='/' element={
@@ -45,17 +55,17 @@ function App() {
             </ProtectedRoute>
           } />
           <Route path="seances" element={
-            <ProtectedRoute requireAdmin>
+            <ProtectedRoute allowedRoles={['admin', 'professor']}>
               <SeancesPage />
             </ProtectedRoute>
           } />
           <Route path="etudiants" element={
-            <ProtectedRoute requireAdmin>
+            <ProtectedRoute allowedRoles={['admin', 'professor']}>
               <EtudiantsPage />
             </ProtectedRoute>
           } />
           <Route path="classes" element={
-            <ProtectedRoute requireAdmin>
+            <ProtectedRoute allowedRoles={['admin', 'professor']}>
               <ClassesPage />
             </ProtectedRoute>
           } />
@@ -65,7 +75,7 @@ function App() {
             </ProtectedRoute>
           } />
           <Route path="modules" element={
-            <ProtectedRoute requireAdmin>
+            <ProtectedRoute allowedRoles={['admin', 'professor']}>
               <ModulesPage />
             </ProtectedRoute>
           } />

@@ -30,6 +30,8 @@ import { handleApiError } from "@/utils/apiUtils";
 import { getAllClasses, createClass, updateClass, deleteClass } from "@/services/classService";
 import { ClassForm } from "@/components/forms/ClassForm";
 import type { Class } from "@/types";
+import { useAuth } from "@/contexts/AuthContext";
+import { getEnseignantById } from "@/services/teacherService";
 
 export default function ClassesPage() {
     const [classes, setClasses] = useState<Class[]>([]);
@@ -37,6 +39,7 @@ export default function ClassesPage() {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingClass, setEditingClass] = useState<Class | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const { user } = useAuth();
 
     useEffect(() => {
         fetchData();
@@ -59,7 +62,7 @@ export default function ClassesPage() {
             setIsSubmitting(true);
             if (editingClass) {
                 await updateClass(editingClass._id, values);
-                toast.success("Classe modifiée avec succès",{
+                toast.success("Classe modifiée avec succès", {
                     duration: 5000,
                     position: "top-right",
                     style: {
@@ -69,7 +72,7 @@ export default function ClassesPage() {
                 });
             } else {
                 await createClass(values);
-                toast.success("Classe créée avec succès",{
+                toast.success("Classe créée avec succès", {
                     duration: 5000,
                     position: "top-right",
                     style: {
@@ -92,7 +95,7 @@ export default function ClassesPage() {
         if (!confirm("Êtes-vous sûr de vouloir supprimer cette classe ?")) return;
         try {
             await deleteClass(id);
-            toast.success("Classe supprimée",{
+            toast.success("Classe supprimée", {
                 duration: 5000,
                 position: "top-right",
                 style: {
@@ -116,6 +119,15 @@ export default function ClassesPage() {
         if (!open) setEditingClass(null);
     };
 
+    const [searchQuery, setSearchQuery] = useState("");
+
+    const filteredClasses = classes.filter(classe =>
+        classe.nom_classe.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        classe.niveau.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        classe.departement.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        classe.filiere.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -125,26 +137,28 @@ export default function ClassesPage() {
                         Gérez les classes de l'établissement.
                     </p>
                 </div>
-                <Dialog open={isDialogOpen} onOpenChange={handleDialogChange}>
-                    <DialogTrigger asChild>
-                        <Button onClick={() => setEditingClass(null)}>
-                            <Plus className="mr-2 h-4 w-4" /> Ajouter une classe
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-[425px]">
-                        <DialogHeader>
-                            <DialogTitle>{editingClass ? "Modifier la classe" : "Ajouter une classe"}</DialogTitle>
-                            <DialogDescription>
-                                {editingClass ? "Modifiez les informations de la classe." : "Remplissez le formulaire pour créer une nouvelle classe."}
-                            </DialogDescription>
-                        </DialogHeader>
-                        <ClassForm
-                            onSubmit={handleCreateOrUpdateClass}
-                            defaultValues={editingClass || undefined}
-                            isLoading={isSubmitting}
-                        />
-                    </DialogContent>
-                </Dialog>
+                {user?.role === 'admin' && (
+                    <Dialog open={isDialogOpen} onOpenChange={handleDialogChange}>
+                        <DialogTrigger asChild>
+                            <Button onClick={() => setEditingClass(null)}>
+                                <Plus className="mr-2 h-4 w-4" /> Ajouter une classe
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-[425px]">
+                            <DialogHeader>
+                                <DialogTitle>{editingClass ? "Modifier la classe" : "Ajouter une classe"}</DialogTitle>
+                                <DialogDescription>
+                                    {editingClass ? "Modifiez les informations de la classe." : "Remplissez le formulaire pour créer une nouvelle classe."}
+                                </DialogDescription>
+                            </DialogHeader>
+                            <ClassForm
+                                onSubmit={handleCreateOrUpdateClass}
+                                defaultValues={editingClass || undefined}
+                                isLoading={isSubmitting}
+                            />
+                        </DialogContent>
+                    </Dialog>
+                )}
             </div>
 
             <div className="flex items-center gap-2">
@@ -153,9 +167,11 @@ export default function ClassesPage() {
                     <Input
                         placeholder="Rechercher une classe..."
                         className="pl-8 w-full md:w-[300px]"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
                     />
                 </div>
-                
+
             </div>
 
             <Card>
@@ -176,24 +192,26 @@ export default function ClassesPage() {
                                     <TableHead>Niveau</TableHead>
                                     <TableHead>Département</TableHead>
                                     <TableHead>Filière</TableHead>
-                                    <TableHead className="text-right">Actions</TableHead>
+                                    {user?.role === 'admin' && <TableHead className="text-right">Actions</TableHead>}
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {classes.map((classe) => (
+                                {filteredClasses.map((classe) => (
                                     <TableRow key={classe._id}>
                                         <TableCell className="font-medium">{classe.nom_classe}</TableCell>
                                         <TableCell>{classe.niveau}</TableCell>
                                         <TableCell>{classe.departement}</TableCell>
                                         <TableCell>{classe.filiere}</TableCell>
-                                        <TableCell className="text-right space-x-2">
-                                            <Button variant="outline" size="sm" onClick={() => openEditDialog(classe)}>
-                                                Modifier
-                                            </Button>
-                                            <Button variant="outline" className="text-red-500 hover:text-red-600" size="sm" onClick={() => handleDeleteClass(classe._id)}>
-                                                Supprimer
-                                            </Button>
-                                        </TableCell>
+                                        {user?.role === 'admin' && (
+                                            <TableCell className="text-right space-x-2">
+                                                <Button variant="outline" size="sm" onClick={() => openEditDialog(classe)}>
+                                                    Modifier
+                                                </Button>
+                                                <Button variant="outline" className="text-red-500 hover:text-red-600" size="sm" onClick={() => handleDeleteClass(classe._id)}>
+                                                    Supprimer
+                                                </Button>
+                                            </TableCell>
+                                        )}
                                     </TableRow>
                                 ))}
                                 {classes.length === 0 && (

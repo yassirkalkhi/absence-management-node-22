@@ -13,7 +13,7 @@ export const createEtudiant = async (req: Request, res: Response): Promise<void>
 
 export const getEtudiants = async (req: Request, res: Response): Promise<void> => {
     try {
-        const etudiants = await Etudiant.find().populate('classe');
+        const etudiants = await Etudiant.find().populate('classe').sort({createdAt: -1});
         res.status(200).json(etudiants);
     } catch (error) {
         res.status(500).json({ message: (error as Error).message });

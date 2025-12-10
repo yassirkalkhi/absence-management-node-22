@@ -57,7 +57,7 @@ export default function EnseignantsPage() {
     const handleCreateOrUpdateTeacher = async (values: any) => {
         try {
             setIsSubmitting(true);
- 
+
             const payload = { ...values };
             if (!payload.password) {
                 delete payload.password;
@@ -142,6 +142,15 @@ export default function EnseignantsPage() {
         if (!open) setEditingTeacher(null);
     };
 
+    const [searchQuery, setSearchQuery] = useState("");
+
+    const filteredTeachers = teachers.filter(teacher =>
+        teacher.nom.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        teacher.prenom.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        teacher.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        teacher.telephone.includes(searchQuery)
+    );
+
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -179,9 +188,11 @@ export default function EnseignantsPage() {
                     <Input
                         placeholder="Rechercher un enseignant..."
                         className="pl-8 w-full md:w-[300px]"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
                     />
                 </div>
-                 
+
             </div>
 
             <Card>
@@ -206,7 +217,7 @@ export default function EnseignantsPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {teachers.map((teacher) => (
+                                {filteredTeachers.map((teacher) => (
                                     <TableRow key={teacher._id}>
                                         <TableCell className="font-medium">{teacher.nom}</TableCell>
                                         <TableCell>{teacher.prenom}</TableCell>
