@@ -31,7 +31,6 @@ import { getAllClasses, createClass, updateClass, deleteClass } from "@/services
 import { ClassForm } from "@/components/forms/ClassForm";
 import type { Class } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
-import { getEnseignantById } from "@/services/teacherService";
 
 export default function ClassesPage() {
     const [classes, setClasses] = useState<Class[]>([]);

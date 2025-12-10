@@ -32,9 +32,8 @@ import { getAllAbsences, createAbsence, updateAbsence, deleteAbsence, getStudent
 import { getAllStudents } from "@/services/studentService";
 import { getAllSessions } from "@/services/sessionService";
 import { AbsenceForm } from "@/components/forms/AbsenceForm";
-import { useAuth } from "@/contexts/AuthContext";
-import { getEnseignantById } from "@/services/teacherService";
-import type { Absence, Student, Session, Class } from "@/types";
+import { useAuth } from "@/contexts/AuthContext"; 
+import type { Absence, Student, Session } from "@/types";
 import { cn } from "@/lib/utils";
 
 export default function AbsencesPage() {
@@ -86,10 +85,6 @@ export default function AbsencesPage() {
                     return teacherId === user.enseignant;
                 });
                 setSessions(teacherSessions);
-
-                const teacherData = await getEnseignantById(user.enseignant);
- 
-                const teacherClassIds = teacherData.classes.map((c: Class | string) => typeof c === 'string' ? c : c._id);
  
                 setStudents(allStudents);
 

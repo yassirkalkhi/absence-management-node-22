@@ -31,8 +31,7 @@ import { getAllStudents, createStudent, updateStudent, deleteStudent } from "@/s
 import { getAllClasses } from "@/services/classService";
 import { StudentForm } from "@/components/forms/StudentForm";
 import type { Student, Class } from "@/types";
-import { useAuth } from "@/contexts/AuthContext";
-import { getEnseignantById } from "@/services/teacherService";
+import { useAuth } from "@/contexts/AuthContext"; 
 
 export default function EtudiantsPage() {
     const [students, setStudents] = useState<Student[]>([]);
